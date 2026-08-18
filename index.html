@@ -2,7 +2,7 @@
 <html lang="ms" data-t="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fine Cabinetry.Co — Sistem Projek &amp; Pembayaran</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23141310'/><rect x='5' y='5' width='22' height='22' fill='none' stroke='%23d4a437' stroke-width='1.6'/><text x='16' y='22' font-family='Georgia,serif' font-size='14' font-weight='700' fill='%23d4a437' text-anchor='middle'>FC</text></svg>">
 <meta name="theme-color" content="#0a0a09">
@@ -210,7 +210,8 @@
   .map .ok{color:var(--gold);font-weight:700}
   .map .no{color:var(--muted)}
 
-  #gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--page);padding:20px}
+  #gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--page);
+    padding:calc(20px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left))}
   #gate.on{display:flex}
   .gatebox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px;width:100%;max-width:390px;box-shadow:var(--shadow)}
   .gatebox label{display:block;font-size:12.5px;color:var(--ink2);margin:15px 0 6px}
@@ -238,12 +239,20 @@
   .status-sambung{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
   .status-sambung i{width:7px;height:7px;border-radius:50%;background:var(--good)}
   .status-sambung.demo i{background:var(--warn)}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--card);border:1px solid var(--gold-deep);
+  .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--card);border:1px solid var(--gold-deep);
     border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:120;font-size:13.5px;color:var(--ink)}
   .tip{position:fixed;pointer-events:none;background:var(--gold);color:#17150e;padding:7px 11px;border-radius:9px;font-size:12px;opacity:0;transition:.1s;z-index:99;white-space:nowrap;font-weight:500}
   .empty{text-align:center;color:var(--muted);padding:38px}
   @media(max-width:820px){
-    .shell{padding:0}.app{border-radius:0}
+    /* iOS standalone: status bar "black-translucent" meletakkan kandungan DI BAWAH
+       jam & Dynamic Island. env() perlukan viewport-fit=cover pada tag viewport.
+       Pada peranti tanpa kawasan selamat, env() = 0, jadi tiada kesan. */
+    .shell{padding:0;
+      padding-top:env(safe-area-inset-top);
+      padding-bottom:env(safe-area-inset-bottom);
+      padding-left:env(safe-area-inset-left);
+      padding-right:env(safe-area-inset-right)}
+    .app{border-radius:0}
     .side{display:none}.body{padding:16px}
     .topbar{padding:12px 16px}.tiles{grid-template-columns:1fr}
   }
