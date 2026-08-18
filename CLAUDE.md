@@ -59,8 +59,16 @@ ia digunakan untuk demo kepada management sebelum Supabase disiapkan.
 `aliran` (jsonb) · `dicipta_oleh` · `diubah_oleh` · `created_at` · `updated_at`
 
 ### `bayaran`
-`id` (uuid) · `projek_id` (FK cascade) · `kod` · `jenis` · `amaun` · `tarikh` ·
+`id` (uuid) · `projek_id` (FK cascade) · `kod` (FK ke `projek.kod`,
+`on update cascade` + `on delete cascade`) · `jenis` · `amaun` · `tarikh` ·
 `kaedah` · `ruj` · `status` (`Diterima` / `Menunggu`) · `dicipta_oleh`
+
+**`kod` ialah rujukan sebenar.** `terima(kod)` memadan bayaran dengan projek
+melalui medan teks ini, bukan `projek_id`. Menukar kod projek dikendalikan pada
+dua peringkat: `simpanProjek()` meminta pengesahan dan melakukan cascade
+`update bayaran set kod` melalui `projek_id`, dan constraint FK dalam
+`supabase.sql` menangkap apa-apa yang terlepas (baris `projek_id` null,
+suntingan terus melalui Table Editor).
 
 ### `log_aktiviti`
 `id` · `pengguna` · `tindakan` · `butiran` · `created_at` — **insert & select sahaja**,
@@ -182,7 +190,21 @@ satu siri, satu warna, corak *hatch* untuk "tiada data". Tiada pustaka carta.
 - Semua laluan **relatif** (`./sw.js`, `./manifest.json`) — GitHub Pages
   menghidangkan dari sub-laluan `/nama-repo/`.
 - `sw.js` **mesti** langkau hos `*.supabase.co` (jangan cache panggilan API).
-- `data.json` guna *network-first*; aset lain *cache-first*.
+- `data.json` **dan `config.js`** guna *network-first*; aset lain *cache-first*.
+  `config.js` mesti network-first kerana kunci Supabase diisi selepas deploy —
+  kalau di-precache, pengguna sedia ada terperangkap dalam mod demo.
+- **Jangan sesekali** letak nilai dalam rentetan JS di dalam atribut HTML
+  (`onclick="f('${...}')"`) menggunakan `esc()` sahaja. Entiti HTML seperti
+  `&#39;` dinyahkod oleh parser **sebelum** JS diparse, jadi petik tunggal
+  tetap menamatkan rentetan dan mematikan butang. Guna `escJS()`.
+- Lencana status projek dapat dua kelas: `k-${jenisStatus(s)}` (jaring kategori)
+  diikuti `t-${slug(s)}` (padanan tepat). Kelas `k-*` diisytihar **sebelum**
+  `t-*` dalam CSS supaya padanan tepat menang; ia wujud supaya status bebas
+  seperti `Aktif` atau `WIP` tak jadi lencana tanpa warna. Status **bayaran**
+  kekal `slug()` sahaja.
+- `_JUM` (cache `terima()`) dibina semula pada permulaan setiap `render()`.
+  Kalau anda panggil `terima()` dari laluan yang tak melalui `render()`,
+  panggil `binaJumlah()` dahulu.
 - Sandaran offline hanya untuk permintaan `navigate` — jika tidak, permintaan
   skrip dapat HTML dan meletup dengan `SyntaxError: Unexpected token '<'`.
 - RLS: hanya peranan `authenticated`. Kunci `anon` selamat dalam repo public.

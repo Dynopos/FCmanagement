@@ -160,6 +160,12 @@
   .li .t small{color:var(--muted);font-size:11.5px}
   .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .tag i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+  /* Jaring keselamatan dari jenisStatus() — tangkap status bebas yang tiada
+     dalam senarai slug di bawah (Aktif, WIP, Active, Closed, Handover…).
+     Diisytihar SEBELUM .t-* supaya padanan tepat sentiasa menang. */
+  .k-pending{color:var(--tag-blue);background:var(--tag-blue-bg)}
+  .k-jalan{color:var(--tag-amber);background:var(--tag-amber-bg)}
+  .k-siap{color:var(--tag-gold);background:var(--tag-gold-bg)}
   .t-baru,.t-new{color:var(--tag-blue);background:var(--tag-blue-bg)}
   .t-progres,.t-dalamprogres,.t-dalamprogress,.t-ongoing,.t-running,.t-berjalan{color:var(--tag-amber);background:var(--tag-amber-bg)}
   .t-siap,.t-selesai,.t-completed,.t-complete,.t-done,.t-ended{color:var(--tag-gold);background:var(--tag-gold-bg)}
@@ -526,6 +532,12 @@ const STATUS=["Baru","Dalam Progres","Siap","Tertunda"];
 const rm  = n => "RM"+(+n||0).toLocaleString("ms-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
 const rmS = n => { n=+n||0; return n>=1e6?"RM"+(n/1e6).toFixed(1)+"j" : n>=1e3?"RM"+Math.round(n/1e3)+"k" : "RM"+Math.round(n); };
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* Untuk nilai yang masuk ke dalam rentetan JS DI DALAM atribut HTML —
+   onclick="f('…')". Petik tunggal mesti jadi \' pada peringkat JS; entiti
+   HTML seperti &#39; dinyahkod oleh parser SEBELUM JS diparse, jadi ia tetap
+   menamatkan rentetan dan mematikan butang. Backslash dahulu, kemudian petik,
+   barulah esc() untuk konteks HTML. */
+const escJS = s => esc(String(s??"").replace(/\\/g,"\\\\").replace(/'/g,"\\'"));
 const cv  = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
 const slug= s => String(s||"").toLowerCase().replace(/[^a-z]/g,"");
 
@@ -1086,13 +1098,13 @@ function jadualProjek(){
     return `<tr><td><b>${esc(p.kod)}</b>${p.inv?`<br><small style="color:var(--muted)">${esc(p.inv)}</small>`:""}</td>
       <td class="wnama"><b>${esc(p.nama)}</b></td><td>${esc(p.lokasi||"—")}</td>
       <td>${tel?`<a href="tel:${esc(tel.replace(/\s/g,""))}" style="color:var(--gold);text-decoration:none">${esc(tel)}</a>`:"—"}</td>
-      <td><span class="tag t-${slug(p.status)}"><i></i>${esc(p.status||"—")}</span></td>
+      <td><span class="tag k-${jenisStatus(p.status)} t-${slug(p.status)}"><i></i>${esc(p.status||"—")}</span></td>
       <td class="num">${rm(n)}</td><td class="num">${rm(d)}</td>
       <td class="num" style="${bk<=0?"color:var(--gold);font-weight:600":""}">${rm(bk)}</td>
       <td><div class="prog"><div class="b"><i style="width:${pc}%"></i></div><small>${pc}%</small></div></td>
       <td><div class="rowact">${bolehTulis()?`
-        <button class="mini" title="Kemas kini projek" onclick="bukaProjek('${esc(p.kod)}')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 10-4-4L4 16z"/></svg></button>
-        <button class="mini" title="Tambah bayaran" onclick="bayarUntuk('${esc(p.kod)}')"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>`:""}</div></td></tr>`;
+        <button class="mini" title="Kemas kini projek" onclick="bukaProjek('${escJS(p.kod)}')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 10-4-4L4 16z"/></svg></button>
+        <button class="mini" title="Tambah bayaran" onclick="bayarUntuk('${escJS(p.kod)}')"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>`:""}</div></td></tr>`;
   }).join("") || `<tr><td colspan="10" class="empty">Tiada rekod padan.</td></tr>`;
   const tn=rows.reduce((s,p)=>s+(+p.nilai||0),0), td=rows.reduce((s,p)=>s+terima(p.kod),0);
   document.getElementById("tf-projek").innerHTML=rows.length?`<tr style="background:var(--hover);font-weight:700">
@@ -1133,7 +1145,7 @@ function jadualArkib(){
       <td>${esc(thnProjek(p)||"—")}</td>
       <td class="num">${rm(n)}</td><td class="num">${rm(d)}</td>
       <td class="num" style="${bk<=0?"color:var(--gold);font-weight:600":"color:var(--tag-red)"}">${rm(bk)}</td>
-      <td><div class="rowact">${bolehTulis()?`<button class="mini" title="Buka semula / kemas kini" onclick="bukaProjek('${esc(p.kod)}')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 10-4-4L4 16z"/></svg></button>`:""}</div></td></tr>`;
+      <td><div class="rowact">${bolehTulis()?`<button class="mini" title="Buka semula / kemas kini" onclick="bukaProjek('${escJS(p.kod)}')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 10-4-4L4 16z"/></svg></button>`:""}</div></td></tr>`;
   }).join("") || `<tr><td colspan="9" class="empty">${semua.length?"Tiada rekod padan.":"Belum ada projek siap."}</td></tr>`;
 
   const tn=rows.reduce((s,p)=>s+(+p.nilai||0),0), td=rows.reduce((s,p)=>s+terima(p.kod),0);
@@ -1162,7 +1174,7 @@ function jadualBayaran(){
       <td>${esc(b.jenis||"Bayaran")}</td><td>${esc(b.kaedah||"—")}</td><td><small>${esc(b.ruj||"—")}</small></td>
       <td><span class="tag t-${slug(b.status)||"diterima"}"><i></i>${esc(b.status||"Diterima")}</span></td>
       <td class="num"><b>${rm(b.amaun)}</b></td>
-      <td><div class="rowact">${bolehTulis()?`<button class="mini" title="Kemas kini" onclick="bukaBayaran('${esc(b.id)}')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 10-4-4L4 16z"/></svg></button>`:""}</div></td></tr>`;
+      <td><div class="rowact">${bolehTulis()?`<button class="mini" title="Kemas kini" onclick="bukaBayaran('${escJS(b.id)}')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 10-4-4L4 16z"/></svg></button>`:""}</div></td></tr>`;
   }).join("") || `<tr><td colspan="8" class="empty">Tiada rekod padan.</td></tr>`;
   const t=rows.reduce((s,b)=>s+(+b.amaun||0),0);
   document.getElementById("tf-bayaran").innerHTML=rows.length?`<tr style="background:var(--hover);font-weight:700">
@@ -1441,7 +1453,7 @@ function praFlow(){
       <thead><tr><th>Kod</th><th>Klien</th><th>Lokasi</th><th>Telefon</th><th>Status</th><th class="num">Kontrak</th><th class="num">Diterima</th></tr></thead>
       <tbody>${F.projek.map(p=>{const d=F.bayaran.filter(b=>b.kod===p.kod).reduce((s,b)=>s+b.amaun,0);
         return `<tr><td><b>${esc(p.kod)}</b></td><td>${esc(p.nama)}</td><td>${esc(p.lokasi||"—")}</td>
-          <td>${esc(p.telefon||"—")}</td><td><span class="tag t-${slug(p.status)}"><i></i>${esc(p.status)}</span></td>
+          <td>${esc(p.telefon||"—")}</td><td><span class="tag k-${jenisStatus(p.status)} t-${slug(p.status)}"><i></i>${esc(p.status)}</span></td>
           <td class="num">${rm(p.nilai)}</td><td class="num">${rm(d)}</td></tr>`;}).join("")}</tbody></table></div></div>`;
 }
 async function importFlow(hanyaBaharu){
