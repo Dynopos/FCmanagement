@@ -18,8 +18,8 @@
    ===================================================================== */
 
 window.TETAPAN = {
-  SUPABASE_URL:      "",
-  SUPABASE_ANON_KEY: "",
+  SUPABASE_URL:      "https://fgxcawfztxoaayeowdbs.supabase.co",
+  SUPABASE_ANON_KEY: "",   // <-- TAMPAL KUNCI anon public DI SINI
 
   // Nama syarikat yang dipaparkan
   SYARIKAT:  "FINE CABINETRY",

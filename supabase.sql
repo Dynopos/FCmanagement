@@ -39,28 +39,10 @@ create table if not exists public.bayaran (
   created_at  timestamptz not null default now()
 );
 
--- ---------- 2b. IKAT BAYARAN PADA KOD PROJEK ----------
--- Aplikasi memadan bayaran dengan projek melalui medan teks "kod"
--- (lihat terima() dalam index.html), jadi kod MESTI kekal selari antara
--- kedua-dua jadual. Tanpa constraint ini, menukar kod sesuatu projek
--- meninggalkan semua bayarannya yatim dan projek nampak macam belum dibayar.
---   on update cascade  → tukar nama kod projek, bayaran ikut serentak
---   on delete cascade  → padam projek, bayaran turut dipadam
-do $$ begin
-  -- Bersihkan rekod yatim sedia ada, kalau tidak constraint akan ditolak.
-  delete from public.bayaran b
-   where not exists (select 1 from public.projek p where p.kod = b.kod);
-
-  alter table public.bayaran
-    add constraint bayaran_kod_fkey
-    foreign key (kod) references public.projek(kod)
-    on update cascade on delete cascade;
-exception when duplicate_object then null; end $$;
-
 -- ---------- 3. LOG AKTIVITI ----------
 create table if not exists public.log_aktiviti (
   id         bigserial primary key,
-  pengguna   text,
+  pengguna   text not null default auth.email(),
   tindakan   text,
   butiran    text,
   created_at timestamptz not null default now()
@@ -97,13 +79,18 @@ create policy "pengguna sah - bayaran" on public.bayaran
   for all to authenticated using (true) with check (true);
 
 -- Log: semua boleh baca & tambah, TIADA sesiapa boleh padam atau ubah.
+-- `pengguna` diisi oleh pelayan dari auth.email() dan polisi menolak nilai lain,
+-- jadi pengguna tak boleh merekod log atas nama orang lain melalui konsol browser.
 drop policy if exists "log - baca"    on public.log_aktiviti;
 create policy "log - baca"    on public.log_aktiviti
   for select to authenticated using (true);
 
 drop policy if exists "log - tambah"  on public.log_aktiviti;
 create policy "log - tambah"  on public.log_aktiviti
-  for insert to authenticated with check (true);
+  for insert to authenticated with check (pengguna = auth.email());
+
+-- Pastikan default terpakai walaupun jadual sudah wujud dari versi lama
+alter table public.log_aktiviti alter column pengguna set default auth.email();
 
 -- ---------- 7. REALTIME (semua nampak perubahan serta-merta) ----------
 do $$ begin

@@ -160,15 +160,10 @@
   .li .t small{color:var(--muted);font-size:11.5px}
   .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .tag i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
-  /* Lencana projek dapat DUA kelas: umum dari jenisStatus() + tepat dari slug().
-     Yang umum menjamin status bebas ("Ongoing", "WIP", "Completed") tetap
-     berwarna; yang tepat diisytihar kemudian supaya ia menang bila padan. */
-  .t-pending{color:var(--tag-blue);background:var(--tag-blue-bg)}
-  .t-jalan,.t-progres{color:var(--tag-amber);background:var(--tag-amber-bg)}
-  .t-siap{color:var(--tag-gold);background:var(--tag-gold-bg)}
-  .t-baru{color:var(--tag-blue);background:var(--tag-blue-bg)}
-  .t-tertunda{color:var(--tag-red);background:var(--tag-red-bg)}
-  /* status bayaran — kekal guna slug() */
+  .t-baru,.t-new{color:var(--tag-blue);background:var(--tag-blue-bg)}
+  .t-progres,.t-dalamprogres,.t-dalamprogress,.t-ongoing,.t-running,.t-berjalan{color:var(--tag-amber);background:var(--tag-amber-bg)}
+  .t-siap,.t-selesai,.t-completed,.t-complete,.t-done,.t-ended{color:var(--tag-gold);background:var(--tag-gold-bg)}
+  .t-tertunda,.t-pending,.t-tangguh{color:var(--tag-red);background:var(--tag-red-bg)}
   .t-menunggu{color:var(--tag-amber);background:var(--tag-amber-bg)}
   .t-diterima{color:var(--tag-gold);background:var(--tag-gold-bg)}
 
@@ -215,8 +210,6 @@
   .gatebox label{display:block;font-size:12.5px;color:var(--ink2);margin:15px 0 6px}
   .field{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--field);outline:none;color:var(--ink)}
   .field:focus{border-color:var(--gold)}
-  .field[readonly]{color:var(--muted);cursor:not-allowed}
-  .field[readonly]:focus{border-color:var(--line)}
   .hint{font-size:12px;color:var(--muted);margin:16px 0 0;text-align:center}
   .ralat{background:var(--tag-red-bg);color:var(--tag-red);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:14px}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:150;padding:18px}
@@ -293,7 +286,7 @@
     <div class="topbar">
       <div class="search">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input id="q" placeholder="Cari projek, klien atau kod…" oninput="pergi('projek');render()">
+        <input id="q" placeholder="Cari projek, klien atau kod…" oninput="cariGlobal()">
       </div>
       <div class="me">
         <button class="btn sm" id="bpasang" style="display:none" onclick="pasangApp()">⤓ Pasang App</button>
@@ -377,7 +370,7 @@
             <option value="kod">Susun: Kod projek</option>
             <option value="pct">Susun: % kutipan</option>
           </select>
-          <span id="kat-chip"></span>
+          <span id="kat-chip"></span><span id="nota-cari"></span>
         </div>
         <div id="nota-arkib"></div>
         <div class="tbl"><table>
@@ -476,7 +469,8 @@
   <div class="g2">
     <div><label>Kod projek *</label><input class="field" id="mp-kod" required placeholder="FC-11"></div>
     <div><label>No. invois</label><input class="field" id="mp-inv" placeholder="FC-I260815"></div>
-    <div class="full"><label>Nama klien *</label><input class="field" id="mp-nama" required placeholder="EN AHMAD"></div>
+    <div class="full"><label>Nama projek / klien *</label><input class="field" id="mp-nama" required placeholder="EN AHMAD"></div>
+    <div class="full"><label>Nama klien untuk pengumpulan <small style="color:var(--muted)">(kosongkan = sama dgn atas)</small></label><input class="field" id="mp-klien" placeholder="EN AHMAD"></div>
     <div><label>Lokasi</label><input class="field" id="mp-lokasi" placeholder="DESA MENTARI, PJ"></div>
     <div><label>Telefon</label><input class="field" id="mp-tel" placeholder="012 3456789"></div>
     <div><label>Nilai kontrak (RM) *</label><input class="field" id="mp-nilai" type="number" min="0" step="0.01" required></div>
@@ -531,11 +525,21 @@ const STATUS=["Baru","Dalam Progres","Siap","Tertunda"];
 
 const rm  = n => "RM"+(+n||0).toLocaleString("ms-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
 const rmS = n => { n=+n||0; return n>=1e6?"RM"+(n/1e6).toFixed(1)+"j" : n>=1e3?"RM"+Math.round(n/1e3)+"k" : "RM"+Math.round(n); };
-const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const cv  = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
 const slug= s => String(s||"").toLowerCase().replace(/[^a-z]/g,"");
 
-const terima = kod => DATA.bayaran.filter(b=>b.kod===kod && b.status!=="Menunggu").reduce((s,b)=>s+(+b.amaun||0),0);
+/* Cache jumlah diterima — dibina sekali setiap render(), bukan diimbas semula
+   setiap panggilan. Tanpa ini render() ialah O(projek² × bayaran). */
+let _JUM=null;
+function binaJumlah(){
+  _JUM=new Map();
+  for(const b of DATA.bayaran){
+    if(b.status==="Menunggu") continue;
+    _JUM.set(b.kod,(_JUM.get(b.kod)||0)+(+b.amaun||0));
+  }
+}
+const terima = kod => { if(!_JUM) binaJumlah(); return _JUM.get(kod)||0; };
 const inisial= s => String(s||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
 
 /* Kategori status — faham Bahasa Melayu & Inggeris */
@@ -550,7 +554,9 @@ const NAMAKAT={siap:"Ended Project (Siap)",jalan:"Running Project (Dalam progres
 /* Penapis dari tile */
 let KAT="", JEN="";
 function lihatKat(k){ KAT=k; JEN=""; document.getElementById("f-status").value=""; pergi("projek"); render(); }
-function lihatJenis(j){ JEN=j; document.getElementById("f-projek").value=""; document.getElementById("f-bstatus").value=j==="deposit"?"":"Diterima"; pergi("bayaran"); render(); }
+function lihatJenis(j){ JEN=j; document.getElementById("f-projek").value="";
+  document.getElementById("f-bstatus").value="Diterima";   // kotak dashboard kecualikan "Menunggu" — senarai mesti sama
+  pergi("bayaran"); render(); }
 function lihatBaki(){ KAT=""; document.getElementById("f-status").value=""; document.getElementById("f-susun").value="baki"; pergi("projek"); render(); }
 function kosongkanTapis(){ KAT=""; JEN=""; document.getElementById("f-status").value=""; document.getElementById("f-bstatus").value=""; render(); }
 
@@ -639,8 +645,13 @@ async function muatData(paksa){
       SB.from("bayaran").select("*").order("tarikh",{ascending:false})
     ]);
     if(pr.error||by.error){
-      alert("Tak dapat baca data: "+((pr.error||by.error).message)+
-        "\n\nPastikan supabase.sql sudah dijalankan dalam SQL Editor.");
+      const m=(pr.error||by.error).message||"";
+      alert("Tak dapat baca data.\n\n"+m+"\n\n"+(
+        /jwt|expired|session/i.test(m) ? "Sesi anda tamat tempoh — sila log masuk semula." :
+        /fetch|network/i.test(m)       ? "Semak sambungan internet anda." :
+        /relation|does not exist/i.test(m) ? "Jadual belum wujud — jalankan supabase.sql dalam SQL Editor." :
+        /permission|policy|rls/i.test(m)   ? "Akaun anda tiada kebenaran. Semak polisi RLS." :
+        "Cuba muat semula halaman."));
       return;
     }
     DATA={meta:{tajuk:T.SYARIKAT||"Fine Cabinetry.Co", jabatan:T.JABATAN||"",
@@ -690,7 +701,9 @@ function segarSemula(){
 /* ---------- Log aktiviti ---------- */
 async function catat(tindakan,butiran){
   if(!SB||!SESI) return;
-  await SB.from("log_aktiviti").insert({pengguna:sayaEmel(),tindakan,butiran:butiran||""});
+  // `pengguna` sengaja TIDAK dihantar — pelayan isi sendiri dari auth.email()
+  // supaya log tak boleh dipalsukan atas nama orang lain.
+  await SB.from("log_aktiviti").insert({tindakan,butiran:butiran||""});
 }
 async function muatLog(){
   const tb=document.getElementById("tb-log");
@@ -769,6 +782,29 @@ function statusTerbit(){
   }
 }
 
+function cariGlobal(){
+  const q=(document.getElementById("q").value||"").trim().toLowerCase();
+  const padan=p=>[p.kod,p.nama,p.klien,p.lokasi,p.telefon,p.inv].some(x=>String(x||"").toLowerCase().includes(q));
+  if(q){
+    const aktif=DATA.projek.filter(p=>jenisStatus(p.status)!=="siap"&&padan(p)).length;
+    const siap =DATA.projek.filter(p=>jenisStatus(p.status)==="siap"&&padan(p)).length;
+    document.getElementById("q-arkib").value=q;
+    // pergi ke tab yang ada padanan; kalau dua-dua ada, utamakan yang aktif
+    const kini=(document.querySelector(".view.on")||{}).id;
+    if(aktif) { if(kini!=="v-projek") pergi("projek"); }
+    else if(siap){ if(kini!=="v-arkib") pergi("arkib"); }
+    render();
+    const nota=document.getElementById("nota-cari");
+    if(nota) nota.innerHTML = (aktif||siap)
+      ? (aktif&&siap ? `<span class="tapis" style="cursor:default">${aktif} aktif · ${siap} dalam arkib</span>` : "")
+      : `<span class="tapis" style="cursor:default;color:var(--tag-red);border-color:var(--tag-red)">Tiada padanan untuk "${esc(q)}"</span>`;
+  }else{
+    document.getElementById("q-arkib").value="";
+    const nota=document.getElementById("nota-cari"); if(nota) nota.innerHTML="";
+    render();
+  }
+}
+
 /* ================= BORANG PROJEK ================= */
 const PERINGKAT_ALIRAN=[["deposit","Deposit"],["lukisan","Lukisan"],["gambarSblm","Gambar sebelum"],
   ["pasang","Pemasangan"],["baki","Baki bayaran"],["gambarSlps","Gambar selepas"],
@@ -783,14 +819,10 @@ function bukaProjek(kod){
   const p = kod ? DATA.projek.find(x=>x.kod===kod) : null;
   document.getElementById("mp-tajuk").textContent = p?"Kemas kini projek":"Projek baharu";
   document.getElementById("mp-id").value    = p?p.id||"":"";
-  const kodEl=document.getElementById("mp-kod");
-  kodEl.value = p?p.kod:kodSeterusnya();
-  // Kod ialah rujukan yang mengikat bayaran kepada projek. Kunci selepas
-  // projek dicipta supaya rekod bayaran tak boleh terputus hubungan.
-  kodEl.readOnly = !!p;
-  kodEl.title = p?"Kod tak boleh diubah — ia mengikat rekod bayaran kepada projek ini.":"";
+  document.getElementById("mp-kod").value   = p?p.kod:kodSeterusnya();
   document.getElementById("mp-inv").value   = p?(p.inv||""):"";
   document.getElementById("mp-nama").value  = p?p.nama:"";
+  document.getElementById("mp-klien").value = p?(p.klien&&p.klien!==p.nama?p.klien:""):"";
   document.getElementById("mp-lokasi").value= p?(p.lokasi||""):"";
   document.getElementById("mp-tel").value   = p?(p.telefon||""):"";
   document.getElementById("mp-nilai").value = p?p.nilai:"";
@@ -816,7 +848,7 @@ async function simpanProjek(e){
   const aliran={}; document.querySelectorAll("#mp-aliran input").forEach(c=>aliran[c.dataset.al]=c.checked);
   const rec={kod:document.getElementById("mp-kod").value.trim(),
     nama:document.getElementById("mp-nama").value.trim(),
-    klien:document.getElementById("mp-nama").value.trim(),
+    klien:document.getElementById("mp-klien").value.trim()||document.getElementById("mp-nama").value.trim(),
     lokasi:document.getElementById("mp-lokasi").value.trim(),
     telefon:document.getElementById("mp-tel").value.trim(),
     inv:document.getElementById("mp-inv").value.trim(),
@@ -826,7 +858,24 @@ async function simpanProjek(e){
     nota:document.getElementById("mp-nota").value.trim(),
     aliran, diubah_oleh:sayaEmel()};
   let res, projekId=id;
-  if(id){ res=await SB.from("projek").update(rec).eq("id",id).select().single(); }
+  if(id){
+    const lama=DATA.projek.find(x=>x.id===id);
+    const kodBerubah = lama && lama.kod !== rec.kod;
+    if(kodBerubah){
+      const kena=DATA.bayaran.filter(b=>b.kod===lama.kod).length;
+      if(!confirm(`Tukar kod projek ${lama.kod} → ${rec.kod}?\n\n${kena} rekod bayaran akan turut dikemas kini supaya kekal terikat pada projek ini.`)){
+        btn.disabled=false; btn.textContent="Simpan"; return;
+      }
+    }
+    res=await SB.from("projek").update(rec).eq("id",id).select().single();
+    if(!res.error && kodBerubah){
+      const uk=await SB.from("bayaran").update({kod:rec.kod}).eq("projek_id",id);
+      if(uk.error){ btn.disabled=false; btn.textContent="Simpan";
+        return alert("Projek dikemas kini, TAPI bayaran gagal diikat semula: "+uk.error.message+
+          "\n\nTukar kod kembali ke "+lama.kod+" untuk elak nombor tersalah."); }
+      await catat("Tukar kod projek", `${lama.kod} → ${rec.kod}`);
+    }
+  }
   else  { rec.dicipta_oleh=sayaEmel(); res=await SB.from("projek").insert(rec).select().single(); projekId=res.data&&res.data.id; }
   if(res.error){ btn.disabled=false; btn.textContent="Simpan";
     return alert(/duplicate/i.test(res.error.message)?"Kod projek "+rec.kod+" sudah wujud. Guna kod lain.":res.error.message); }
@@ -926,6 +975,7 @@ function isiPilihan(){
 
 /* ================= RENDER ================= */
 function render(){
+  binaJumlah();
   const P=DATA.projek, B=DATA.bayaran;
   const nilai=P.reduce((s,p)=>s+(+p.nilai||0),0);
   const kutip=P.reduce((s,p)=>s+terima(p.kod),0);
@@ -982,7 +1032,7 @@ function render(){
   cartaBaris("c-status", urut.map(s=>({l:s,sub:"",v:P.filter(p=>p.status===s).length})), v=>v);
 
   /* bayaran terkini */
-  const byrTerkini = [...B].sort((a,b)=>String(b.tarikh).localeCompare(String(a.tarikh))).slice(0,6);
+  const byrTerkini = [...B].sort((a,b)=>(b.tarikh||"").localeCompare(a.tarikh||"")).slice(0,6);
   document.getElementById("cap-byr").textContent = byrTerkini.length+" transaksi terbaharu";
   document.getElementById("l-bayaran").innerHTML = byrTerkini
     .map(b=>{const p=P.find(x=>x.kod===b.kod)||{};
@@ -1036,7 +1086,7 @@ function jadualProjek(){
     return `<tr><td><b>${esc(p.kod)}</b>${p.inv?`<br><small style="color:var(--muted)">${esc(p.inv)}</small>`:""}</td>
       <td class="wnama"><b>${esc(p.nama)}</b></td><td>${esc(p.lokasi||"—")}</td>
       <td>${tel?`<a href="tel:${esc(tel.replace(/\s/g,""))}" style="color:var(--gold);text-decoration:none">${esc(tel)}</a>`:"—"}</td>
-      <td><span class="tag t-${jenisStatus(p.status)} t-${slug(p.status)}"><i></i>${esc(p.status||"—")}</span></td>
+      <td><span class="tag t-${slug(p.status)}"><i></i>${esc(p.status||"—")}</span></td>
       <td class="num">${rm(n)}</td><td class="num">${rm(d)}</td>
       <td class="num" style="${bk<=0?"color:var(--gold);font-weight:600":""}">${rm(bk)}</td>
       <td><div class="prog"><div class="b"><i style="width:${pc}%"></i></div><small>${pc}%</small></div></td>
@@ -1051,7 +1101,7 @@ function jadualProjek(){
     <td>${tn?Math.round(td/tn*100):0}%</td><td></td></tr>`:"";
 }
 function jadualArkib(){
-  const q=(document.getElementById("q-arkib").value||"").toLowerCase();
+  const q=((document.getElementById("q-arkib").value)||(document.getElementById("q").value)||"").toLowerCase();
   const ft=document.getElementById("f-arkibthn").value;
   const semua=DATA.projek.filter(p=>jenisStatus(p.status)==="siap");
   const thnProjek=p=>{
@@ -1102,7 +1152,7 @@ function jadualBayaran(){
   const fp=document.getElementById("f-projek").value, fs=document.getElementById("f-bstatus").value;
   const rows=DATA.bayaran.filter(b=>(!fp||b.kod===fp)&&(!fs||(b.status||"Diterima")===fs)&&
       (!JEN||/deposit|pendahuluan|advance/i.test(b.jenis||"")))
-    .sort((a,b)=>String(b.tarikh).localeCompare(String(a.tarikh)));
+    .sort((a,b)=>(b.tarikh||"").localeCompare(a.tarikh||""));
   document.getElementById("jen-chip").innerHTML = JEN
     ? `<button class="tapis" onclick="kosongkanTapis()">Deposit Payment sahaja <b>×</b></button>` : "";
   document.getElementById("tb-bayaran").innerHTML=rows.map(b=>{
@@ -1148,7 +1198,7 @@ function eksportKlien(){
 
 /* ================= CARTA ================= */
 const tip=document.getElementById("tip");
-function hov(sel,root){
+function hov(root){
   document.querySelectorAll("#"+root+" .hv").forEach(el=>{
     el.addEventListener("mousemove",e=>{tip.textContent=el.dataset.t;tip.style.opacity=1;tip.style.left=(e.clientX+14)+"px";tip.style.top=(e.clientY-36)+"px";});
     el.addEventListener("mouseleave",()=>tip.style.opacity=0);
@@ -1177,7 +1227,7 @@ function cartaBar(id,data){
     `<svg viewBox="0 0 ${W} ${H}" width="100%"><defs><pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
       <rect width="7" height="7" fill="${cv("--hatch")}"/><line x1="0" y1="0" x2="0" y2="7" stroke="${cv("--hatch-line")}" stroke-width="3.2"/></pattern></defs>
       ${g}${b}</svg>`;
-  hov(0,id);
+  hov(id);
 }
 function cartaBaris(id,data,lbl){
   if(!data.length){document.getElementById(id).innerHTML=`<div class="empty">Tiada data.</div>`;return;}
@@ -1192,7 +1242,7 @@ function cartaBaris(id,data,lbl){
         <text x="${PL+w+10}" y="${y+16}" font-size="12.5" font-weight="700" fill="${cv("--ink")}">${lbl(d.v)}</text>`;
   });
   document.getElementById(id).innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:540px;display:block;margin:0 auto">${s}</svg>`;
-  hov(0,id);
+  hov(id);
 }
 function gauge(id,pct,kutip,baki){
   const W=300,H=210,cx=150,cy=160,r=104,sw=26;
@@ -1366,11 +1416,22 @@ function praFlow(){
           <div><span class="no">Baki belum dikutip</span><b style="margin-left:auto">${rm(N-T)}</b></div>
           <div><span class="no">Projek dibaca</span><b style="margin-left:auto">${F.projek.length}</b></div>
         </div>
-        <button class="btn p" style="margin-top:14px" onclick="importFlow()">✓ Import ${F.projek.length} projek</button>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn p" onclick="importFlow(false)">✓ Import semua (${F.projek.length})</button>
+          <button class="btn" onclick="importFlow(true)" title="Langkau projek yang sudah wujud — bayaran manual staf kekal selamat">Hanya projek baharu</button>
+        </div>
       </div>
       <div class="card"><h2>Perkara perlu disemak</h2><p class="cap">Jumpa semasa membaca fail</p>
         ${berulang.length?`<div class="note warn" style="margin-top:0"><b>No. invois berulang:</b> ${berulang.map(esc).join(", ")} — digunakan pada lebih daripada satu projek. Sistem beri kod unik sendiri (FC-01, FC-02…), tapi elok dibetulkan dalam fail asal.</div>`:""}
         ${F.projek.filter(p=>!p.nilai).length?`<div class="note warn">${F.projek.filter(p=>!p.nilai).length} projek tiada nilai kontrak.</div>`:""}
+        ${(()=>{const hariIni=new Date().toISOString().slice(0,10);
+          const depan=F.bayaran.filter(b=>b.tarikh&&b.tarikh>hariIni);
+          if(!depan.length) return "";
+          return `<div class="note warn"><b>${depan.length} tarikh bayaran jatuh selepas hari ini</b>
+            (${depan.slice(0,3).map(b=>esc(b.kod+" · "+b.tarikh)).join(", ")}${depan.length>3?"…":""}).<br>
+            Fail Excel ni guna format <b>bulan/hari/tahun</b>. Kalau anda taip <code>10/08/26</code>
+            bermaksud <b>10 Ogos</b>, ia akan terbaca sebagai <b>8 Oktober</b>. Semak dalam tab
+            Pembayaran selepas import dan betulkan yang tersalah.</div>`;})()}
         ${F.projek.filter(p=>/^x+$/i.test(p.nama)).length?`<div class="note warn">Ada projek bernama sementara (contoh "xxx") — kekal dalam sistem sehingga anda namakan.</div>`:""}
         ${!berulang.length&&F.projek.every(p=>p.nilai)?`<div class="note" style="margin-top:0">Tiada masalah dikesan.</div>`:""}
       </div>
@@ -1380,12 +1441,12 @@ function praFlow(){
       <thead><tr><th>Kod</th><th>Klien</th><th>Lokasi</th><th>Telefon</th><th>Status</th><th class="num">Kontrak</th><th class="num">Diterima</th></tr></thead>
       <tbody>${F.projek.map(p=>{const d=F.bayaran.filter(b=>b.kod===p.kod).reduce((s,b)=>s+b.amaun,0);
         return `<tr><td><b>${esc(p.kod)}</b></td><td>${esc(p.nama)}</td><td>${esc(p.lokasi||"—")}</td>
-          <td>${esc(p.telefon||"—")}</td><td><span class="tag t-${jenisStatus(p.status)} t-${slug(p.status)}"><i></i>${esc(p.status)}</span></td>
+          <td>${esc(p.telefon||"—")}</td><td><span class="tag t-${slug(p.status)}"><i></i>${esc(p.status)}</span></td>
           <td class="num">${rm(p.nilai)}</td><td class="num">${rm(d)}</td></tr>`;}).join("")}</tbody></table></div></div>`;
 }
-async function importFlow(){
+async function importFlow(hanyaBaharu){
   const F=window._FLOW;
-  if(SB&&SESI) return keSupabase(F.projek,F.bayaran,"helaian "+F.n);
+  if(SB&&SESI) return keSupabase(F.projek,F.bayaran,"helaian "+F.n,hanyaBaharu);
   DATA={meta:{tajuk:"Fine Cabinetry.Co",jabatan:"Carpentry Department",
     dikemaskini:new Date().toISOString().slice(0,10),oleh:DATA.meta.oleh||"Top Management",
     sumber:"Helaian "+F.n},projek:F.projek,bayaran:F.bayaran};
@@ -1398,20 +1459,31 @@ async function importFlow(){
 }
 
 /* ---------- Masukkan hasil import ke dalam Supabase ---------- */
-async function keSupabase(projek,bayaran,sumber){
+async function keSupabase(projek,bayaran,sumber,hanyaBaharu){
   const hasil=document.getElementById("hasil");
   const sedia=new Set(DATA.projek.map(p=>p.kod));
   const bertindih=projek.filter(p=>sedia.has(p.kod)).map(p=>p.kod);
-  // Import membuang SEMUA bayaran sedia ada bagi kod yang terlibat — termasuk
-  // yang di-key-in manual oleh staf. Kira dahulu supaya pengguna tahu.
+
+  if(hanyaBaharu){
+    projek=projek.filter(p=>!sedia.has(p.kod));
+    const kekal=new Set(projek.map(p=>p.kod));
+    bayaran=bayaran.filter(b=>kekal.has(b.kod));
+    if(!projek.length){ hasil.innerHTML=`<div class="note warn">Semua projek dalam fail sudah wujud. Tiada apa untuk ditambah.</div>`; return; }
+  }
+
   const kods=projek.map(p=>p.kod);
-  const byrTerjejas=DATA.bayaran.filter(b=>kods.includes(b.kod)).length;
-  const amaran = byrTerjejas
-    ? `\n\nAMARAN: ${byrTerjejas} rekod bayaran sedia ada bagi kod tersebut akan DIPADAM dan diganti dengan data dari fail — termasuk bayaran yang di-key-in manual dalam sistem.`
-    : "";
-  const soal = bertindih.length
-    ? `${projek.length} projek akan dimasukkan.\n\n${bertindih.length} kod sudah wujud (${bertindih.slice(0,5).join(", ")}${bertindih.length>5?"…":""}) — rekod sedia ada akan DIGANTIKAN dengan data dari fail.${amaran}\n\nTeruskan?`
-    : `Masukkan ${projek.length} projek dan ${bayaran.length} rekod bayaran ke dalam database?${amaran}`;
+  // Berapa bayaran SEDIA ADA yang akan dipadam? Ini yang mesti dinyatakan dengan jelas.
+  const akanPadam=DATA.bayaran.filter(b=>kods.includes(b.kod));
+  const manual=akanPadam.filter(b=>b.ruj!=="IMPORT");
+
+  let soal=`Masukkan ${projek.length} projek dan ${bayaran.length} rekod bayaran ke dalam database?`;
+  if(bertindih.length && !hanyaBaharu)
+    soal+=`\n\n${bertindih.length} projek sudah wujud (${bertindih.slice(0,4).join(", ")}${bertindih.length>4?"…":""}) — butirannya akan DIGANTIKAN dengan data dari fail.`;
+  if(akanPadam.length)
+    soal+=`\n\n⚠ ${akanPadam.length} rekod bayaran sedia ada bagi projek tersebut akan DIPADAM dan diganti dengan bayaran dari fail.`;
+  if(manual.length)
+    soal+=`\n\n⚠⚠ ${manual.length} daripadanya dimasukkan secara manual oleh staf (bukan dari import). Bayaran manual ini akan HILANG.\n\nTekan Batal, kemudian pilih "Hanya projek baharu" jika anda tak mahu ini berlaku.`;
+  soal+=`\n\nTeruskan?`;
   if(!confirm(soal)) return;
 
   hasil.innerHTML=`<div class="note">Sedang memasukkan data ke Supabase…</div>`;
@@ -1419,84 +1491,36 @@ async function keSupabase(projek,bayaran,sumber){
     telefon:p.telefon||null,inv:p.inv||null,status:p.status||"Baru",nilai:+p.nilai||0,
     mula:p.mula||null,nota:p.nota||null,aliran:p.aliran||{},dicipta_oleh:sayaEmel(),diubah_oleh:sayaEmel()}));
   const up=await SB.from("projek").upsert(barisP,{onConflict:"kod"}).select("id,kod");
-  if(up.error){ hasil.innerHTML=`<div class="note warn">Gagal: ${esc(up.error.message)}</div>`; return; }
+  if(up.error){ hasil.innerHTML=`<div class="note warn"><b>Import gagal.</b> ${esc(up.error.message)}<br>Tiada data diubah.</div>`; return; }
   const peta={}; (up.data||[]).forEach(r=>peta[r.kod]=r.id);
 
-  // buang bayaran lama bagi projek yang diimport, kemudian masukkan yang baharu
-  const buang=await SB.from("bayaran").delete().in("kod",kods);
-  if(buang.error){
-    hasil.innerHTML=`<div class="note warn">Gagal membersihkan bayaran lama: ${esc(buang.error.message)}
-      <br>Projek sudah dikemas kini, tetapi rekod bayaran dibiarkan seperti asal.</div>`;
-    await muatData(); return;
+  if(akanPadam.length){
+    const del=await SB.from("bayaran").delete().in("kod",kods);
+    if(del.error){
+      hasil.innerHTML=`<div class="note warn"><b>Projek dah dikemas kini, tapi bayaran lama gagal dipadam.</b><br>
+        ${esc(del.error.message)}<br>Import dihentikan supaya tiada bayaran berganda. Cuba lagi.</div>`;
+      await muatData(); return;
+    }
   }
   const barisB=bayaran.map(b=>({projek_id:peta[b.kod]||null,kod:b.kod,jenis:b.jenis||"Bayaran",
-    amaun:+b.amaun||0,tarikh:b.tarikh||null,kaedah:b.kaedah||null,ruj:b.ruj||null,
+    amaun:+b.amaun||0,tarikh:b.tarikh||null,kaedah:b.kaedah||null,ruj:b.ruj||"IMPORT",
     status:b.status||"Diterima",dicipta_oleh:sayaEmel()}));
   if(barisB.length){
     const ib=await SB.from("bayaran").insert(barisB);
-    if(ib.error){ hasil.innerHTML=`<div class="note warn">Projek masuk, tapi bayaran gagal: ${esc(ib.error.message)}</div>`; return; }
+    if(ib.error){
+      hasil.innerHTML=`<div class="note warn"><b>AMARAN — import separuh jalan.</b><br>
+        Projek berjaya dimasukkan tetapi bayaran gagal: ${esc(ib.error.message)}<br>
+        Bayaran lama bagi projek tersebut sudah dipadam. <b>Import semula fail yang sama sekarang</b> untuk pulihkan.</div>`;
+      await muatData(); return;
+    }
   }
-  await catat("Import Excel", `${projek.length} projek, ${bayaran.length} bayaran (${sumber})`);
+  await catat("Import Excel", `${projek.length} projek, ${bayaran.length} bayaran (${sumber})`+
+    (akanPadam.length?` — ${akanPadam.length} bayaran lama diganti`:""));
   await muatData();
   hasil.innerHTML=`<div class="note"><b>${projek.length}</b> projek dan <b>${bayaran.length}</b> rekod bayaran
-    berjaya dimasukkan ke database. Semua pengguna lain akan nampak serta-merta.</div>
+    berjaya dimasukkan. Semua pengguna lain akan nampak serta-merta.</div>
     <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn p" onclick="pergi('dash')">Lihat Dashboard</button>
     <button class="btn" onclick="pergi('projek')">Lihat Projek</button></div>`;
-}
-function pilihSheet(i){
-  const s=window._SHEETS[i], kunci=Object.keys(s.rows[0]), peta=padan(kunci);
-  window._PILIH=i;
-  const tabs=window._SHEETS.map((x,j)=>`<button class="btn sm${j==i?" p":""}" onclick="pilihSheet(${j})">${esc(x.n)} (${x.rows.length})</button>`).join(" ");
-  const petaHtml=Object.keys(KAMUS).map(m=>peta[m]
-    ? `<div><span class="ok">✓</span> <b>${m}</b> <span class="no">←</span> ${esc(peta[m])}</div>`
-    : `<div><span class="no">–</span> <b>${m}</b> <span class="no">tak dijumpai</span></div>`).join("");
-  document.getElementById("hasil").innerHTML=`
-    <div class="card" style="margin-top:16px">
-      <h2>Helaian dalam fail</h2><p class="cap">Pilih helaian yang mengandungi senarai projek</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${tabs}</div>
-    </div>
-    <div class="row3" style="margin-top:14px">
-      <div class="card"><h2>Padanan lajur automatik</h2><p class="cap">Apa yang sistem faham dari lajur anda</p>
-        <div class="map">${petaHtml}</div></div>
-      <div class="card"><h2>Sedia untuk import</h2><p class="cap">Semak pratonton dahulu</p>
-        ${peta.nama||peta.kod ? `<div class="note" style="margin-top:0">Sistem jumpa <b>${s.rows.length}</b> baris dalam helaian <b>${esc(s.n)}</b>.
-          ${peta.nilai?"Nilai kontrak akan dikira automatik.":"<b>Amaran:</b> lajur nilai kontrak tak dijumpai — nilai akan jadi 0."}</div>
-          <button class="btn p" onclick="importSekarang()">✓ Import ${s.rows.length} baris</button>`
-        : `<div class="note warn" style="margin-top:0">Sistem tak jumpa lajur nama projek dalam helaian ni. Cuba helaian lain, atau pastikan baris pertama ialah tajuk lajur.</div>`}
-      </div>
-    </div>
-    <div class="card" style="margin-top:14px"><h2>Pratonton</h2><p class="cap">8 baris pertama, seperti dalam fail anda</p>
-      <div class="tbl" style="border-radius:12px"><table><thead><tr>${kunci.map(k=>`<th>${esc(k)}</th>`).join("")}</tr></thead>
-      <tbody>${s.rows.slice(0,8).map(r=>`<tr>${kunci.map(k=>`<td>${esc(r[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
-}
-async function importSekarang(){
-  const s=window._SHEETS[window._PILIH], kunci=Object.keys(s.rows[0]), peta=padan(kunci);
-  const P=[],B=[]; let n=0, id=1;
-  s.rows.forEach(r=>{
-    const nama=String(peta.nama?r[peta.nama]:"").trim();
-    const kodRaw=String(peta.kod?r[peta.kod]:"").trim();
-    if(!nama && !kodRaw) return;
-    n++;
-    const kod=kodRaw||("PRJ-"+String(n).padStart(3,"0"));
-    const nilai=peta.nilai?angka(r[peta.nilai]):0;
-    const tar=peta.tarikh?tarikhStr(r[peta.tarikh]):"";
-    P.push({kod, nama:nama||kod, klien:String(peta.klien?r[peta.klien]:"").trim(),
-      pic:String(peta.pic?r[peta.pic]:"").trim(), status:String(peta.status?r[peta.status]:"").trim()||"Dalam Progres",
-      nilai, mula:tar});
-    const dep=peta.deposit?angka(r[peta.deposit]):0;
-    if(dep>0) B.push({id:id++, kod, jenis:"Deposit", amaun:dep, tarikh:tar||"", kaedah:"—", ruj:"IMPORT", status:"Diterima"});
-    const byr=peta.bayar?angka(r[peta.bayar]):0;
-    if(byr>0 && byr!==dep) B.push({id:id++, kod, jenis:"Bayaran", amaun:byr, tarikh:tar||"", kaedah:"—", ruj:"IMPORT", status:"Diterima"});
-  });
-  if(!n){ document.getElementById("hasil").innerHTML=`<div class="note warn">Tiada baris sah dijumpai.</div>`; return; }
-  if(SB&&SESI) return keSupabase(P,B,"helaian "+s.n);
-  DATA={meta:{tajuk:DATA.meta.tajuk, dikemaskini:new Date().toISOString().slice(0,10), oleh:DATA.meta.oleh||"Top Management"}, projek:P, bayaran:B};
-  siap();
-  document.getElementById("hasil").innerHTML=`<div class="note"><b>${n}</b> projek dan <b>${B.length}</b> rekod bayaran berjaya diimport dan dikira.
-    Semua nombor di Dashboard dah dikemas kini.</div>
-    <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn p" onclick="pergi('dash')">Lihat Dashboard</button>
-    <button class="btn" onclick="turunJSON()">⬇ Muat turun data.json</button>
-    <button class="btn" onclick="pergi('terbit')">Cara terbitkan</button></div>`;
 }
 
 /* ================= EKSPORT ================= */
