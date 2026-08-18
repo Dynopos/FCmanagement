@@ -1,6 +1,9 @@
 # Pembetulan selepas semakan kod — 18 Ogos 2026
 
-Semakan oleh Claude Code, disahkan dan dibaiki. `sw.js` VERSI dinaikkan ke `fc-v9`.
+Semakan oleh Claude Code, disahkan dan dibaiki. `sw.js` VERSI kini `fc-v11`.
+
+> Lihat **Susulan** di bawah — dua item dalam jadual ini tidak lulus pengesahan
+> browser dan telah dibetulkan kemudian, dan satu regresi ditemui.
 
 | # | Isu | Status | Tindakan |
 |---|---|---|---|
@@ -36,4 +39,67 @@ Padam projek          → 1 bayaran berkaitan turut dipadam                    �
 Mod demo              → butang tulis tersembunyi, tiada ralat konsol         ✓
 Lencana Dalam Progres → rgb(224,180,92) ✓ (sebelum ni tiada warna)
 Cari projek arkib     → melompat ke tab arkib, jumpa                         ✓
+```
+
+---
+
+## Susulan — pengesahan browser
+
+Setiap tuntutan di atas diuji dengan Playwright terhadap fail sebenar. Kebanyakannya
+lulus. Tiga perkara tidak.
+
+### e — escape petik tunggal TIDAK menjadi
+
+`esc()` menukar `'` kepada `&#39;`, tetapi nilai itu diletakkan dalam rentetan JS
+di dalam atribut HTML. Parser HTML menyahkod entiti **sebelum** JS diparse, jadi
+`&#39;` kembali menjadi `'` dan tetap menamatkan rentetan.
+
+```
+kod FC-04'X  →  onclick="bukaProjek('FC-04'X')"
+                PAGEERROR: missing ) after argument list — butang edit mati
+```
+
+Dibaiki dengan `escJS()`: escape backslash dan petik pada peringkat JS dahulu,
+barulah `esc()` untuk konteks HTML. Kini menghasilkan `bukaProjek('FC-04\'X')`
+dan nilai pulang tepat sebagai `FC-04'X`.
+
+### d — senarai slug tidak meliputi semua status
+
+Senarai `.t-*` dalam CSS ialah senarai putih. `Aktif`, `WIP` dan `Active` —
+kesemuanya dikenali `jenisStatus()` sebagai berjalan — masih keluar tanpa warna.
+Ditambah kelas kategori `k-siap` / `k-jalan` / `k-pending` dari `jenisStatus()`,
+diisytihar **sebelum** `.t-*` supaya padanan tepat kekal menang dan `Tertunda`
+kekal merah.
+
+### REGRESI — import Excel generik mati
+
+`baca()` memanggil `pilihSheet(0)` sebagai sandaran apabila `huraiFlow()` tak
+mengenali fail, tetapi `pilihSheet()` dan `importSekarang()` **hilang** semasa
+pusingan a–k. Pemanggil kekal, fungsinya tiada.
+
+Kesan: format PROJECT FLOW Fine Cabinetry masih berfungsi, tetapi **mana-mana
+Excel lain** mati dengan `pilihSheet is not defined` dan pengguna nampak skrin
+kosong tanpa sebarang mesej. Isu ini terlindung sebelum ini kerana `xlsx.min.js`
+belum ada dalam repo — laluan itu tak pernah sampai.
+
+Kedua-dua fungsi dipulihkan dari baseline. Disahkan hujung-ke-hujung dengan fail
+`.xlsx` sebenar: 2 projek RM80,000 → RM45,000 diterima, RM35,000 baki,
+1 aktif / 1 arkib, tiada ralat konsol.
+
+### a — lapisan kedua ditambah semula
+
+Cascade JS dikekalkan. Constraint FK `bayaran.kod → projek.kod`
+(`on update/delete cascade`) ditambah dalam `supabase.sql` bahagian **6c**,
+selepas pembaikan data 6b. Ia **tidak memadam apa-apa** — kalau masih ada
+bayaran tanpa projek sepadan, constraint dilangkau dan skrip memberitahu.
+
+### Ujian regresi selepas semua di atas
+
+```
+Mod demo            → RM184,193.00 · RM83,861.00 · RM100,332.00 · 7/3/16   ✓
+Import generik      → RM80,000.00 = RM45,000.00 + RM35,000.00              ✓
+Lencana status      → Dalam Progres/WIP/Aktif/Active amber, Tertunda merah ✓
+Kod dengan petik    → butang edit buka, nilai pulang tepat                 ✓
+Pustaka             → SheetJS 0.18.5, supabase-js dimuat                   ✓
+Ralat konsol        → tiada                                                ✓
 ```

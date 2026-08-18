@@ -205,6 +205,9 @@ satu siri, satu warna, corak *hatch* untuk "tiada data". Tiada pustaka carta.
 - `_JUM` (cache `terima()`) dibina semula pada permulaan setiap `render()`.
   Kalau anda panggil `terima()` dari laluan yang tak melalui `render()`,
   panggil `binaJumlah()` dahulu.
+- `baca()` mencuba `huraiFlow()` dahulu, kemudian jatuh ke `pilihSheet()` →
+  `importSekarang()` untuk fail lain. Ketiga-tiga **mesti** wujud serentak —
+  buang salah satu dan setiap Excel bukan-PROJECT-FLOW mati senyap.
 - Sandaran offline hanya untuk permintaan `navigate` — jika tidak, permintaan
   skrip dapat HTML dan meletup dengan `SyntaxError: Unexpected token '<'`.
 - RLS: hanya peranan `authenticated`. Kunci `anon` selamat dalam repo public.

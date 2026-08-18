@@ -126,6 +126,32 @@ begin
   end if;
 end $$;
 
+-- ---------- 6c. IKAT BAYARAN PADA KOD PROJEK ----------
+-- simpanProjek() sudah melakukan cascade `update bayaran set kod` ikut kod lama.
+-- Constraint ini ialah lapisan kedua: ia menangkap suntingan yang tidak melalui
+-- aplikasi — contohnya Table Editor dalam Supabase — dan menjadikan keadaan
+-- yatim mustahil, bukan sekadar tidak dijangka.
+--   on update cascade  → tukar kod projek, bayaran ikut serentak
+--   on delete cascade  → padam projek, bayaran turut dipadam
+-- Dijalankan SELEPAS 6b supaya projek_id yang kosong sudah diisi dahulu.
+-- Kalau masih ada bayaran tanpa projek sepadan, constraint DILANGKAU dan skrip
+-- beritahu — rekod kewangan tidak sekali-kali dipadam secara automatik di sini.
+do $$
+declare n int;
+begin
+  select count(*) into n from public.bayaran b
+   where not exists (select 1 from public.projek p where p.kod = b.kod);
+  if n > 0 then
+    raise notice 'Constraint bayaran_kod_fkey DILANGKAU: % rekod bayaran tiada projek sepadan. Betulkan dalam tab Pembayaran, kemudian jalankan skrip ini semula.', n;
+    return;
+  end if;
+
+  alter table public.bayaran
+    add constraint bayaran_kod_fkey
+    foreign key (kod) references public.projek(kod)
+    on update cascade on delete cascade;
+exception when duplicate_object then null; end $$;
+
 -- ---------- 7. REALTIME (semua nampak perubahan serta-merta) ----------
 -- Tangkap SEMUA ralat di sini: kalau projek anda tiada publication realtime,
 -- sistem tetap berfungsi (cuma perlu tekan butang muat semula untuk lihat
