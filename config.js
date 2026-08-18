@@ -19,7 +19,7 @@
 
 window.TETAPAN = {
   SUPABASE_URL:      "https://fgxcawfztxoaayeowdbs.supabase.co",
-  SUPABASE_ANON_KEY: "",   // <-- TAMPAL KUNCI anon public DI SINI
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZneGNhd2Z6dHhvYWF5ZW93ZGJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTg4MzYsImV4cCI6MjEwMjU3NDgzNn0.qfmoWRxU7gX4q56oh3keINKWO2BDF6jKB2yioB82SgY",
 
   // Nama syarikat yang dipaparkan
   SYARIKAT:  "FINE CABINETRY",
