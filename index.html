@@ -916,6 +916,15 @@ async function padamProjek(){
 }
 
 /* ================= BORANG BAYARAN ================= */
+/* Import boleh menghasilkan nilai yang tiada dalam senarai pilihan borang —
+   huraiFlow() menjana jenis "Bayaran" / "Bayaran Diterima" dan kaedah "—".
+   Tanpa ini, <select> jadi kosong bila rekod dibuka, dan menyimpan akan
+   memadam nilai asal secara senyap. Tambah pilihan itu buat sementara. */
+function pilihNilai(el, nilai){
+  const v = String(nilai ?? "").trim();
+  if(v && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v));
+  el.value = v;
+}
 function bukaBayaran(id){
   if(!bolehTulis()) return perluLogMasuk();
   if(!DATA.projek.length) return alert("Tambah projek dahulu sebelum merekod bayaran.");
@@ -925,10 +934,10 @@ function bukaBayaran(id){
   document.getElementById("mb-kod").innerHTML=DATA.projek.map(p=>
     `<option value="${esc(p.kod)}">${esc(p.kod)} — ${esc(p.nama)}</option>`).join("");
   document.getElementById("mb-kod").value    = b?b.kod:DATA.projek[0].kod;
-  document.getElementById("mb-jenis").value  = b?(b.jenis||"Deposit"):"Deposit";
+  pilihNilai(document.getElementById("mb-jenis"),  b?(b.jenis||"Deposit"):"Deposit");
   document.getElementById("mb-amaun").value  = b?b.amaun:"";
   document.getElementById("mb-tarikh").value = b?(b.tarikh||""):new Date().toISOString().slice(0,10);
-  document.getElementById("mb-kaedah").value = b?(b.kaedah||"Pindahan Bank"):"Pindahan Bank";
+  pilihNilai(document.getElementById("mb-kaedah"), b?(b.kaedah||"Pindahan Bank"):"Pindahan Bank");
   document.getElementById("mb-ruj").value    = b?(b.ruj||""):"";
   document.getElementById("mb-status").value = b?(b.status||"Diterima"):"Diterima";
   document.getElementById("mb-padam").style.display = b?"inline-flex":"none";
