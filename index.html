@@ -629,6 +629,8 @@ async function logMasuk(e){
   btn.disabled=false; btn.textContent="Log Masuk";
   if(error){
     ral.innerHTML=`<div class="ralat">${esc(
+      /logins? are disabled|provider is disabled|email logins/i.test(error.message)
+        ? "Log masuk e-mel dimatikan dalam Supabase. Buka Authentication \u2192 Providers \u2192 Email, HIDUPKAN provider Email, dan matikan \"Enable sign ups\" sahaja \u2014 bukan provider itu sendiri." :
       /invalid/i.test(error.message)      ? "E-mel atau kata laluan salah." :
       /confirm/i.test(error.message)      ? "Akaun belum disahkan. Minta admin tanda \"Auto Confirm User\" di Supabase." :
       /failed to fetch|network/i.test(error.message) ? "Tak dapat hubungi pelayan. Semak sambungan internet, atau pastikan SUPABASE_URL dalam config.js betul." :
