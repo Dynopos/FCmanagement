@@ -2,7 +2,7 @@
 <html lang="ms" data-t="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fine Cabinetry.Co — Sistem Projek &amp; Pembayaran</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23141310'/><rect x='5' y='5' width='22' height='22' fill='none' stroke='%23d4a437' stroke-width='1.6'/><text x='16' y='22' font-family='Georgia,serif' font-size='14' font-weight='700' fill='%23d4a437' text-anchor='middle'>FC</text></svg>">
 <meta name="theme-color" content="#0a0a09">
@@ -110,6 +110,12 @@
 
   .view{display:none}.view.on{display:block}
 
+  /* Butang menu & tabir — hanya wujud pada lebar telefon. Sidebar TIDAK lagi
+     disembunyikan di sana; ia jadi laci yang boleh ditarik keluar, supaya
+     kesemua lapan destinasi (termasuk Import, Log, Terbitkan) kekal dicapai. */
+  .bmenu{display:none}
+  .tabir{display:none}
+
   /* tiles */
   .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
   @media(max-width:1080px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -210,7 +216,8 @@
   .map .ok{color:var(--gold);font-weight:700}
   .map .no{color:var(--muted)}
 
-  #gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--page);padding:20px}
+  #gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--page);
+    padding:calc(20px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left))}
   #gate.on{display:flex}
   .gatebox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px;width:100%;max-width:390px;box-shadow:var(--shadow)}
   .gatebox label{display:block;font-size:12.5px;color:var(--ink2);margin:15px 0 6px}
@@ -238,13 +245,31 @@
   .status-sambung{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
   .status-sambung i{width:7px;height:7px;border-radius:50%;background:var(--good)}
   .status-sambung.demo i{background:var(--warn)}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--card);border:1px solid var(--gold-deep);
+  .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--card);border:1px solid var(--gold-deep);
     border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:120;font-size:13.5px;color:var(--ink)}
   .tip{position:fixed;pointer-events:none;background:var(--gold);color:#17150e;padding:7px 11px;border-radius:9px;font-size:12px;opacity:0;transition:.1s;z-index:99;white-space:nowrap;font-weight:500}
   .empty{text-align:center;color:var(--muted);padding:38px}
   @media(max-width:820px){
-    .shell{padding:0}.app{border-radius:0}
-    .side{display:none}.body{padding:16px}
+    /* iOS standalone: status bar "black-translucent" meletakkan kandungan DI BAWAH
+       jam & Dynamic Island. env() perlukan viewport-fit=cover pada tag viewport.
+       Pada peranti tanpa kawasan selamat, env() = 0, jadi tiada kesan. */
+    .shell{padding:0;
+      padding-top:env(safe-area-inset-top);
+      padding-bottom:env(safe-area-inset-bottom);
+      padding-left:env(safe-area-inset-left);
+      padding-right:env(safe-area-inset-right)}
+    .app{border-radius:0}
+    .bmenu{display:grid}
+    .side{position:fixed;top:0;bottom:0;left:0;width:262px;max-width:82vw;z-index:110;
+      background:var(--card);border-right:1px solid var(--line);overflow-y:auto;
+      transform:translateX(-100%);transition:transform .22s ease;
+      padding-top:calc(22px + env(safe-area-inset-top));
+      padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+    .side.buka{transform:none;box-shadow:0 0 60px rgba(0,0,0,.55)}
+    .tabir{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:105;
+      opacity:0;pointer-events:none;transition:opacity .22s}
+    .tabir.on{opacity:1;pointer-events:auto}
+    .body{padding:16px}
     .topbar{padding:12px 16px}.tiles{grid-template-columns:1fr}
   }
 </style>
@@ -266,6 +291,7 @@
 </div>
 
 <div class="shell" id="shell" style="display:none"><div class="app">
+  <div class="tabir" id="tabir" onclick="togolMenu(false)"></div>
 
   <!-- ===== SIDEBAR ===== -->
   <div class="side">
@@ -290,6 +316,7 @@
   <!-- ===== MAIN ===== -->
   <div class="main">
     <div class="topbar">
+      <button class="iconbtn bmenu" id="bmenu" title="Menu" aria-label="Menu" onclick="togolMenu()"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div class="search">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input id="q" placeholder="Cari projek, klien atau kod…" oninput="cariGlobal()">
@@ -581,12 +608,23 @@ function tileGrid(id,arr){
 }
 
 /* ================= NAVIGASI ================= */
-function pergi(v){
+/* Laci menu untuk telefon — sidebar penuh, bukan versi dipendekkan. */
+function togolMenu(buka){
+  const sd=document.querySelector(".side"), tb=document.getElementById("tabir");
+  const nak = buka===undefined ? !sd.classList.contains("buka") : buka;
+  sd.classList.toggle("buka",nak); tb.classList.toggle("on",nak);
+}
+/* Setiap perpindahan tab menulis hash, jadi ia jadi entri sejarah. Tanpa ini,
+   app terpasang (PWA) tiada butang back langsung — leret-ke-tepi pada iPhone
+   dan butang back Android kedua-duanya tak buat apa-apa. */
+function pergi(v,dariSejarah){
   document.querySelectorAll(".side a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));
   document.querySelectorAll(".view").forEach(s=>s.classList.remove("on"));
   document.getElementById("v-"+v).classList.add("on");
   document.querySelector(".body").scrollTop=0;
+  togolMenu(false);
   if(v==="log") muatLog();
+  if(!dariSejarah && (location.hash||"").slice(1)!==v) location.hash=v;
 }
 document.querySelectorAll(".side a").forEach(a=>a.onclick=()=>pergi(a.dataset.v));
 
@@ -694,7 +732,9 @@ function siap(){
 }
 window.addEventListener("hashchange",()=>{
   const h=(location.hash||"").slice(1);
-  if(h && document.getElementById("v-"+h)) pergi(h);
+  if(document.querySelector(".modal.on")) tutupModal();
+  if(h && document.getElementById("v-"+h)) pergi(h,true);
+  else if(!h) pergi("dash",true);
 });
 
 /* ---------- Realtime: semua nampak perubahan serta-merta ---------- */
