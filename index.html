@@ -110,6 +110,12 @@
 
   .view{display:none}.view.on{display:block}
 
+  /* Butang menu & tabir — hanya wujud pada lebar telefon. Sidebar TIDAK lagi
+     disembunyikan di sana; ia jadi laci yang boleh ditarik keluar, supaya
+     kesemua lapan destinasi (termasuk Import, Log, Terbitkan) kekal dicapai. */
+  .bmenu{display:none}
+  .tabir{display:none}
+
   /* tiles */
   .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
   @media(max-width:1080px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -253,7 +259,17 @@
       padding-left:env(safe-area-inset-left);
       padding-right:env(safe-area-inset-right)}
     .app{border-radius:0}
-    .side{display:none}.body{padding:16px}
+    .bmenu{display:grid}
+    .side{position:fixed;top:0;bottom:0;left:0;width:262px;max-width:82vw;z-index:110;
+      background:var(--card);border-right:1px solid var(--line);overflow-y:auto;
+      transform:translateX(-100%);transition:transform .22s ease;
+      padding-top:calc(22px + env(safe-area-inset-top));
+      padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+    .side.buka{transform:none;box-shadow:0 0 60px rgba(0,0,0,.55)}
+    .tabir{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:105;
+      opacity:0;pointer-events:none;transition:opacity .22s}
+    .tabir.on{opacity:1;pointer-events:auto}
+    .body{padding:16px}
     .topbar{padding:12px 16px}.tiles{grid-template-columns:1fr}
   }
 </style>
@@ -275,6 +291,7 @@
 </div>
 
 <div class="shell" id="shell" style="display:none"><div class="app">
+  <div class="tabir" id="tabir" onclick="togolMenu(false)"></div>
 
   <!-- ===== SIDEBAR ===== -->
   <div class="side">
@@ -299,6 +316,7 @@
   <!-- ===== MAIN ===== -->
   <div class="main">
     <div class="topbar">
+      <button class="iconbtn bmenu" id="bmenu" title="Menu" aria-label="Menu" onclick="togolMenu()"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div class="search">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input id="q" placeholder="Cari projek, klien atau kod…" oninput="cariGlobal()">
@@ -590,12 +608,23 @@ function tileGrid(id,arr){
 }
 
 /* ================= NAVIGASI ================= */
-function pergi(v){
+/* Laci menu untuk telefon — sidebar penuh, bukan versi dipendekkan. */
+function togolMenu(buka){
+  const sd=document.querySelector(".side"), tb=document.getElementById("tabir");
+  const nak = buka===undefined ? !sd.classList.contains("buka") : buka;
+  sd.classList.toggle("buka",nak); tb.classList.toggle("on",nak);
+}
+/* Setiap perpindahan tab menulis hash, jadi ia jadi entri sejarah. Tanpa ini,
+   app terpasang (PWA) tiada butang back langsung — leret-ke-tepi pada iPhone
+   dan butang back Android kedua-duanya tak buat apa-apa. */
+function pergi(v,dariSejarah){
   document.querySelectorAll(".side a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));
   document.querySelectorAll(".view").forEach(s=>s.classList.remove("on"));
   document.getElementById("v-"+v).classList.add("on");
   document.querySelector(".body").scrollTop=0;
+  togolMenu(false);
   if(v==="log") muatLog();
+  if(!dariSejarah && (location.hash||"").slice(1)!==v) location.hash=v;
 }
 document.querySelectorAll(".side a").forEach(a=>a.onclick=()=>pergi(a.dataset.v));
 
@@ -703,7 +732,9 @@ function siap(){
 }
 window.addEventListener("hashchange",()=>{
   const h=(location.hash||"").slice(1);
-  if(h && document.getElementById("v-"+h)) pergi(h);
+  if(document.querySelector(".modal.on")) tutupModal();
+  if(h && document.getElementById("v-"+h)) pergi(h,true);
+  else if(!h) pergi("dash",true);
 });
 
 /* ---------- Realtime: semua nampak perubahan serta-merta ---------- */
