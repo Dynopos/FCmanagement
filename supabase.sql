@@ -39,24 +39,6 @@ create table if not exists public.bayaran (
   created_at  timestamptz not null default now()
 );
 
--- ---------- 2b. IKAT BAYARAN PADA KOD PROJEK ----------
--- simpanProjek() sudah melakukan cascade `update bayaran set kod` melalui
--- projek_id apabila kod ditukar. Constraint ini ialah lapisan kedua: ia
--- menangkap baris yang projek_id-nya null (import lama) dan sebarang suntingan
--- yang tidak melalui aplikasi — contohnya Table Editor dalam Supabase.
---   on update cascade  → tukar kod projek, bayaran ikut serentak
---   on delete cascade  → padam projek, bayaran turut dipadam
-do $$ begin
-  -- Bersihkan rekod yatim sedia ada, kalau tidak constraint akan ditolak.
-  delete from public.bayaran b
-   where not exists (select 1 from public.projek p where p.kod = b.kod);
-
-  alter table public.bayaran
-    add constraint bayaran_kod_fkey
-    foreign key (kod) references public.projek(kod)
-    on update cascade on delete cascade;
-exception when duplicate_object then null; end $$;
-
 -- ---------- 3. LOG AKTIVITI ----------
 create table if not exists public.log_aktiviti (
   id         bigserial primary key,
@@ -110,13 +92,50 @@ create policy "log - tambah"  on public.log_aktiviti
 -- Pastikan default terpakai walaupun jadual sudah wujud dari versi lama
 alter table public.log_aktiviti alter column pengguna set default auth.email();
 
+-- ---------- 6a. KEBENARAN JADUAL (eksplisit, jangan bergantung pada default) ----------
+-- Supabase biasanya beri GRANT ini secara automatik, tetapi menyatakannya di sini
+-- menjadikan skema lengkap sendiri dan tidak pecah jika default projek diubah.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.projek  to authenticated;
+grant select, insert, update, delete on public.bayaran to authenticated;
+
+-- Log aktiviti: HANYA baca & tambah. Tiada UPDATE, tiada DELETE — untuk sesiapa.
+-- Ini lapisan kedua di atas RLS: walaupun polisi tersilap tulis, log tetap kekal.
+grant select, insert on public.log_aktiviti to authenticated;
+grant usage, select on sequence public.log_aktiviti_id_seq to authenticated;
+revoke update, delete on public.log_aktiviti from authenticated, anon;
+
+-- ---------- 6b. PEMBAIKAN DATA (selamat, boleh diulang) ----------
+-- Ikat semula sebarang bayaran yang projek_id-nya kosong tetapi kodnya padan.
+-- Baris begini boleh wujud dari import versi awal, dan ia yang paling mudah
+-- jadi yatim bila kod projek ditukar.
+update public.bayaran b
+   set projek_id = p.id
+  from public.projek p
+ where b.projek_id is null
+   and b.kod = p.kod;
+
+-- Laporan: bayaran yang TIADA projek sepadan langsung (perlu perhatian manual)
+do $$
+declare n int;
+begin
+  select count(*) into n from public.bayaran b
+   where not exists (select 1 from public.projek p where p.kod = b.kod);
+  if n > 0 then
+    raise notice 'AMARAN: % rekod bayaran tiada projek sepadan. Semak jadual Pembayaran.', n;
+  end if;
+end $$;
+
 -- ---------- 7. REALTIME (semua nampak perubahan serta-merta) ----------
+-- Tangkap SEMUA ralat di sini: kalau projek anda tiada publication realtime,
+-- sistem tetap berfungsi (cuma perlu tekan butang muat semula untuk lihat
+-- perubahan orang lain). Jangan biarkan ia menggagalkan keseluruhan skrip.
 do $$ begin
   alter publication supabase_realtime add table public.projek;
-exception when duplicate_object then null; end $$;
+exception when others then raise notice 'Realtime dilangkau untuk projek: %', sqlerrm; end $$;
 do $$ begin
   alter publication supabase_realtime add table public.bayaran;
-exception when duplicate_object then null; end $$;
+exception when others then raise notice 'Realtime dilangkau untuk bayaran: %', sqlerrm; end $$;
 
 -- =====================================================================
 --  SELESAI.
