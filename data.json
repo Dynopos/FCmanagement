@@ -1,0 +1,404 @@
+{
+  "meta": {
+    "tajuk": "Fine Cabinetry.Co",
+    "jabatan": "Carpentry Department",
+    "tahun": "2026",
+    "dikemaskini": "2026-08-18",
+    "oleh": "Top Management",
+    "sumber": "PROJECT LISTING 2026 FCI.xls — helaian PROJECT FLOW 2026"
+  },
+  "projek": [
+    {
+      "kod": "FC-01",
+      "nama": "ABD KADIR",
+      "klien": "ABD KADIR",
+      "lokasi": "DESA MENTARI PJ",
+      "telefon": "012 3735490",
+      "pic": "",
+      "status": "Siap",
+      "nilai": 4800,
+      "mula": "2026-07-12",
+      "inv": "INV09004/2026",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": true,
+        "pasang": true,
+        "baki": true,
+        "gambarSlps": true,
+        "maklumBalas": true,
+        "socmed": true
+      }
+    },
+    {
+      "kod": "FC-02",
+      "nama": "EN ZAKARIA",
+      "klien": "EN ZAKARIA",
+      "lokasi": "DESA SENTOSA, BANGI",
+      "telefon": "019 2240711",
+      "pic": "",
+      "status": "Siap",
+      "nilai": 19000,
+      "mula": "2026-06-30",
+      "inv": "INV09004/26",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": true,
+        "pasang": true,
+        "baki": true,
+        "gambarSlps": true,
+        "maklumBalas": true,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-03",
+      "nama": "PUAN RINIE CHE OMAR",
+      "klien": "PUAN RINIE CHE OMAR",
+      "lokasi": "SURIA RESIDENCE, BUKIT JELUTONG",
+      "telefon": "012-474 6770",
+      "pic": "",
+      "status": "Siap",
+      "nilai": 7500,
+      "mula": "2026-07-31",
+      "inv": "FC-I260731",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": true,
+        "pasang": true,
+        "baki": true,
+        "gambarSlps": true,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-04",
+      "nama": "MR ARVIND",
+      "klien": "MR ARVIND",
+      "lokasi": "THE VUE@MONTEREZ",
+      "telefon": "016 2157126",
+      "pic": "",
+      "status": "Dalam Progres",
+      "nilai": 24200,
+      "mula": "2026-07-20",
+      "inv": "INV09004/2026",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": true,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-05",
+      "nama": "MR AIMAN HAFIZ",
+      "klien": "MR AIMAN HAFIZ",
+      "lokasi": "DIAN II, SHAH ALAM",
+      "telefon": "",
+      "pic": "",
+      "status": "Dalam Progres",
+      "nilai": 20000,
+      "mula": "2026-08-02",
+      "inv": "FC-I260802",
+      "nota": "ADDITIONAL RM1800 +",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": false,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-06",
+      "nama": "REAZA",
+      "klien": "REAZA",
+      "lokasi": "DESA BUDIMAN,",
+      "telefon": "",
+      "pic": "",
+      "status": "Dalam Progres",
+      "nilai": 26000,
+      "mula": "",
+      "inv": "",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": false,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-07",
+      "nama": "EN REZUANE",
+      "klien": "EN REZUANE",
+      "lokasi": "",
+      "telefon": "",
+      "pic": "",
+      "status": "Dalam Progres",
+      "nilai": 23465,
+      "mula": "",
+      "inv": "",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": false,
+        "gambarSblm": false,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-08",
+      "nama": "MEI TENG",
+      "klien": "MEI TENG",
+      "lokasi": "",
+      "telefon": "",
+      "pic": "",
+      "status": "Dalam Progres",
+      "nilai": 4100,
+      "mula": "",
+      "inv": "",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": false,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-09",
+      "nama": "EN MUHAMMAD AMRAN",
+      "klien": "EN MUHAMMAD AMRAN",
+      "lokasi": "",
+      "telefon": "",
+      "pic": "",
+      "status": "Dalam Progres",
+      "nilai": 40128,
+      "mula": "",
+      "inv": "",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": true,
+        "gambarSblm": false,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    },
+    {
+      "kod": "FC-10",
+      "nama": "xxx",
+      "klien": "xxx",
+      "lokasi": "",
+      "telefon": "",
+      "pic": "",
+      "status": "Baru",
+      "nilai": 15000,
+      "mula": "",
+      "inv": "",
+      "nota": "",
+      "aliran": {
+        "deposit": true,
+        "lukisan": false,
+        "gambarSblm": false,
+        "pasang": false,
+        "baki": false,
+        "gambarSlps": false,
+        "maklumBalas": false,
+        "socmed": false
+      }
+    }
+  ],
+  "bayaran": [
+    {
+      "id": 1,
+      "kod": "FC-01",
+      "jenis": "Deposit",
+      "amaun": 1500,
+      "tarikh": "2026-07-12",
+      "kaedah": "—",
+      "ruj": "INV09004/2026",
+      "status": "Diterima"
+    },
+    {
+      "id": 2,
+      "kod": "FC-01",
+      "jenis": "Baki Akhir",
+      "amaun": 3300,
+      "tarikh": "2026-07-23",
+      "kaedah": "—",
+      "ruj": "INV09004/2026",
+      "status": "Diterima"
+    },
+    {
+      "id": 3,
+      "kod": "FC-02",
+      "jenis": "Deposit",
+      "amaun": 1000,
+      "tarikh": "2026-06-30",
+      "kaedah": "—",
+      "ruj": "INV09004/26",
+      "status": "Diterima"
+    },
+    {
+      "id": 4,
+      "kod": "FC-02",
+      "jenis": "Bayaran Lukisan",
+      "amaun": 8500,
+      "tarikh": "2026-06-30",
+      "kaedah": "—",
+      "ruj": "INV09004/26",
+      "status": "Diterima"
+    },
+    {
+      "id": 5,
+      "kod": "FC-02",
+      "jenis": "Bayaran Pemasangan",
+      "amaun": 8550,
+      "tarikh": "2026-07-18",
+      "kaedah": "—",
+      "ruj": "INV09004/26",
+      "status": "Diterima"
+    },
+    {
+      "id": 6,
+      "kod": "FC-02",
+      "jenis": "Baki Akhir",
+      "amaun": 950,
+      "tarikh": "2026-07-18",
+      "kaedah": "—",
+      "ruj": "INV09004/26",
+      "status": "Diterima"
+    },
+    {
+      "id": 7,
+      "kod": "FC-03",
+      "jenis": "Deposit",
+      "amaun": 3750,
+      "tarikh": "2026-07-01",
+      "kaedah": "—",
+      "ruj": "FC-I260731",
+      "status": "Diterima"
+    },
+    {
+      "id": 8,
+      "kod": "FC-03",
+      "jenis": "Bayaran Lain",
+      "amaun": 3750,
+      "tarikh": "2026-07-01",
+      "kaedah": "—",
+      "ruj": "FC-I260731",
+      "status": "Diterima"
+    },
+    {
+      "id": 9,
+      "kod": "FC-04",
+      "jenis": "Deposit",
+      "amaun": 2420,
+      "tarikh": "2026-07-20",
+      "kaedah": "—",
+      "ruj": "INV09004/2026",
+      "status": "Diterima"
+    },
+    {
+      "id": 10,
+      "kod": "FC-04",
+      "jenis": "Bayaran Lukisan",
+      "amaun": 9680,
+      "tarikh": "2026-07-20",
+      "kaedah": "—",
+      "ruj": "INV09004/2026",
+      "status": "Diterima"
+    },
+    {
+      "id": 11,
+      "kod": "FC-05",
+      "jenis": "Bayaran",
+      "amaun": 2000,
+      "tarikh": "2026-10-08",
+      "kaedah": "—",
+      "ruj": "FC-I260802",
+      "status": "Diterima"
+    },
+    {
+      "id": 12,
+      "kod": "FC-05",
+      "jenis": "Deposit",
+      "amaun": 1000,
+      "tarikh": "2026-10-08",
+      "kaedah": "—",
+      "ruj": "FC-I260802",
+      "status": "Diterima"
+    },
+    {
+      "id": 13,
+      "kod": "FC-06",
+      "jenis": "Bayaran",
+      "amaun": 13000,
+      "tarikh": "",
+      "kaedah": "—",
+      "ruj": "—",
+      "status": "Diterima"
+    },
+    {
+      "id": 14,
+      "kod": "FC-07",
+      "jenis": "Bayaran",
+      "amaun": 2347,
+      "tarikh": "",
+      "kaedah": "—",
+      "ruj": "—",
+      "status": "Diterima"
+    },
+    {
+      "id": 15,
+      "kod": "FC-08",
+      "jenis": "Deposit",
+      "amaun": 2050,
+      "tarikh": "",
+      "kaedah": "—",
+      "ruj": "—",
+      "status": "Diterima"
+    },
+    {
+      "id": 16,
+      "kod": "FC-09",
+      "jenis": "Deposit",
+      "amaun": 20064,
+      "tarikh": "",
+      "kaedah": "—",
+      "ruj": "—",
+      "status": "Diterima"
+    }
+  ]
+}
