@@ -2,10 +2,13 @@
    Strategi:
    · data.json  → NETWORK-FIRST  (sentiasa cuba ambil versi terbaru dari GitHub;
                                   guna salinan simpanan bila tiada internet)
+   · config.js  → NETWORK-FIRST  (kunci Supabase boleh berubah selepas deploy;
+                                  kalau cache-first, pengguna sedia ada terperangkap
+                                  dalam mod demo sampai VERSI dinaikkan)
    · lain-lain  → CACHE-FIRST    (buka pantas, boleh guna offline)
    Naikkan VERSI setiap kali index.html diubah supaya cache lama dibuang. */
 
-const VERSI = "fc-v7";
+const VERSI = "fc-v8";
 const TERAS = [
   "./",
   "./index.html",
@@ -15,8 +18,7 @@ const TERAS = [
   "./icon-maskable-512.png",
   "./apple-touch-icon.png",
   "./xlsx.min.js",
-  "./supabase.min.js",
-  "./config.js"
+  "./supabase.min.js"
 ];
 
 self.addEventListener("install", e => {
@@ -44,8 +46,8 @@ self.addEventListener("fetch", e => {
   // Panggilan API Supabase — sentiasa terus ke internet, jangan sentuh cache
   if (url.hostname.endsWith(".supabase.co")) return;
 
-  // data.json — sentiasa cuba internet dahulu
-  if (url.pathname.endsWith("data.json")) {
+  // data.json & config.js — sentiasa cuba internet dahulu
+  if (url.pathname.endsWith("data.json") || url.pathname.endsWith("config.js")) {
     e.respondWith(
       fetch(req, { cache: "no-store" })
         .then(res => {

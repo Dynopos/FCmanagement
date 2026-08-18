@@ -160,10 +160,15 @@
   .li .t small{color:var(--muted);font-size:11.5px}
   .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .tag i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
-  .t-baru{color:var(--tag-blue);background:var(--tag-blue-bg)}
-  .t-progres{color:var(--tag-amber);background:var(--tag-amber-bg)}
+  /* Lencana projek dapat DUA kelas: umum dari jenisStatus() + tepat dari slug().
+     Yang umum menjamin status bebas ("Ongoing", "WIP", "Completed") tetap
+     berwarna; yang tepat diisytihar kemudian supaya ia menang bila padan. */
+  .t-pending{color:var(--tag-blue);background:var(--tag-blue-bg)}
+  .t-jalan,.t-progres{color:var(--tag-amber);background:var(--tag-amber-bg)}
   .t-siap{color:var(--tag-gold);background:var(--tag-gold-bg)}
+  .t-baru{color:var(--tag-blue);background:var(--tag-blue-bg)}
   .t-tertunda{color:var(--tag-red);background:var(--tag-red-bg)}
+  /* status bayaran — kekal guna slug() */
   .t-menunggu{color:var(--tag-amber);background:var(--tag-amber-bg)}
   .t-diterima{color:var(--tag-gold);background:var(--tag-gold-bg)}
 
@@ -210,6 +215,8 @@
   .gatebox label{display:block;font-size:12.5px;color:var(--ink2);margin:15px 0 6px}
   .field{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--field);outline:none;color:var(--ink)}
   .field:focus{border-color:var(--gold)}
+  .field[readonly]{color:var(--muted);cursor:not-allowed}
+  .field[readonly]:focus{border-color:var(--line)}
   .hint{font-size:12px;color:var(--muted);margin:16px 0 0;text-align:center}
   .ralat{background:var(--tag-red-bg);color:var(--tag-red);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:14px}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:150;padding:18px}
@@ -776,7 +783,12 @@ function bukaProjek(kod){
   const p = kod ? DATA.projek.find(x=>x.kod===kod) : null;
   document.getElementById("mp-tajuk").textContent = p?"Kemas kini projek":"Projek baharu";
   document.getElementById("mp-id").value    = p?p.id||"":"";
-  document.getElementById("mp-kod").value   = p?p.kod:kodSeterusnya();
+  const kodEl=document.getElementById("mp-kod");
+  kodEl.value = p?p.kod:kodSeterusnya();
+  // Kod ialah rujukan yang mengikat bayaran kepada projek. Kunci selepas
+  // projek dicipta supaya rekod bayaran tak boleh terputus hubungan.
+  kodEl.readOnly = !!p;
+  kodEl.title = p?"Kod tak boleh diubah — ia mengikat rekod bayaran kepada projek ini.":"";
   document.getElementById("mp-inv").value   = p?(p.inv||""):"";
   document.getElementById("mp-nama").value  = p?p.nama:"";
   document.getElementById("mp-lokasi").value= p?(p.lokasi||""):"";
@@ -1024,7 +1036,7 @@ function jadualProjek(){
     return `<tr><td><b>${esc(p.kod)}</b>${p.inv?`<br><small style="color:var(--muted)">${esc(p.inv)}</small>`:""}</td>
       <td class="wnama"><b>${esc(p.nama)}</b></td><td>${esc(p.lokasi||"—")}</td>
       <td>${tel?`<a href="tel:${esc(tel.replace(/\s/g,""))}" style="color:var(--gold);text-decoration:none">${esc(tel)}</a>`:"—"}</td>
-      <td><span class="tag t-${slug(p.status)}"><i></i>${esc(p.status||"—")}</span></td>
+      <td><span class="tag t-${jenisStatus(p.status)} t-${slug(p.status)}"><i></i>${esc(p.status||"—")}</span></td>
       <td class="num">${rm(n)}</td><td class="num">${rm(d)}</td>
       <td class="num" style="${bk<=0?"color:var(--gold);font-weight:600":""}">${rm(bk)}</td>
       <td><div class="prog"><div class="b"><i style="width:${pc}%"></i></div><small>${pc}%</small></div></td>
@@ -1368,7 +1380,7 @@ function praFlow(){
       <thead><tr><th>Kod</th><th>Klien</th><th>Lokasi</th><th>Telefon</th><th>Status</th><th class="num">Kontrak</th><th class="num">Diterima</th></tr></thead>
       <tbody>${F.projek.map(p=>{const d=F.bayaran.filter(b=>b.kod===p.kod).reduce((s,b)=>s+b.amaun,0);
         return `<tr><td><b>${esc(p.kod)}</b></td><td>${esc(p.nama)}</td><td>${esc(p.lokasi||"—")}</td>
-          <td>${esc(p.telefon||"—")}</td><td><span class="tag t-${slug(p.status)}"><i></i>${esc(p.status)}</span></td>
+          <td>${esc(p.telefon||"—")}</td><td><span class="tag t-${jenisStatus(p.status)} t-${slug(p.status)}"><i></i>${esc(p.status)}</span></td>
           <td class="num">${rm(p.nilai)}</td><td class="num">${rm(d)}</td></tr>`;}).join("")}</tbody></table></div></div>`;
 }
 async function importFlow(){
@@ -1390,9 +1402,16 @@ async function keSupabase(projek,bayaran,sumber){
   const hasil=document.getElementById("hasil");
   const sedia=new Set(DATA.projek.map(p=>p.kod));
   const bertindih=projek.filter(p=>sedia.has(p.kod)).map(p=>p.kod);
+  // Import membuang SEMUA bayaran sedia ada bagi kod yang terlibat — termasuk
+  // yang di-key-in manual oleh staf. Kira dahulu supaya pengguna tahu.
+  const kods=projek.map(p=>p.kod);
+  const byrTerjejas=DATA.bayaran.filter(b=>kods.includes(b.kod)).length;
+  const amaran = byrTerjejas
+    ? `\n\nAMARAN: ${byrTerjejas} rekod bayaran sedia ada bagi kod tersebut akan DIPADAM dan diganti dengan data dari fail — termasuk bayaran yang di-key-in manual dalam sistem.`
+    : "";
   const soal = bertindih.length
-    ? `${projek.length} projek akan dimasukkan.\n\n${bertindih.length} kod sudah wujud (${bertindih.slice(0,5).join(", ")}${bertindih.length>5?"…":""}) — rekod sedia ada akan DIGANTIKAN dengan data dari fail.\n\nTeruskan?`
-    : `Masukkan ${projek.length} projek dan ${bayaran.length} rekod bayaran ke dalam database?`;
+    ? `${projek.length} projek akan dimasukkan.\n\n${bertindih.length} kod sudah wujud (${bertindih.slice(0,5).join(", ")}${bertindih.length>5?"…":""}) — rekod sedia ada akan DIGANTIKAN dengan data dari fail.${amaran}\n\nTeruskan?`
+    : `Masukkan ${projek.length} projek dan ${bayaran.length} rekod bayaran ke dalam database?${amaran}`;
   if(!confirm(soal)) return;
 
   hasil.innerHTML=`<div class="note">Sedang memasukkan data ke Supabase…</div>`;
@@ -1404,8 +1423,12 @@ async function keSupabase(projek,bayaran,sumber){
   const peta={}; (up.data||[]).forEach(r=>peta[r.kod]=r.id);
 
   // buang bayaran lama bagi projek yang diimport, kemudian masukkan yang baharu
-  const kods=projek.map(p=>p.kod);
-  await SB.from("bayaran").delete().in("kod",kods);
+  const buang=await SB.from("bayaran").delete().in("kod",kods);
+  if(buang.error){
+    hasil.innerHTML=`<div class="note warn">Gagal membersihkan bayaran lama: ${esc(buang.error.message)}
+      <br>Projek sudah dikemas kini, tetapi rekod bayaran dibiarkan seperti asal.</div>`;
+    await muatData(); return;
+  }
   const barisB=bayaran.map(b=>({projek_id:peta[b.kod]||null,kod:b.kod,jenis:b.jenis||"Bayaran",
     amaun:+b.amaun||0,tarikh:b.tarikh||null,kaedah:b.kaedah||null,ruj:b.ruj||null,
     status:b.status||"Diterima",dicipta_oleh:sayaEmel()}));

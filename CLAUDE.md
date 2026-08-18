@@ -59,8 +59,15 @@ ia digunakan untuk demo kepada management sebelum Supabase disiapkan.
 `aliran` (jsonb) · `dicipta_oleh` · `diubah_oleh` · `created_at` · `updated_at`
 
 ### `bayaran`
-`id` (uuid) · `projek_id` (FK cascade) · `kod` · `jenis` · `amaun` · `tarikh` ·
+`id` (uuid) · `projek_id` (FK cascade) · `kod` (FK ke `projek.kod`,
+`on update cascade` + `on delete cascade`) · `jenis` · `amaun` · `tarikh` ·
 `kaedah` · `ruj` · `status` (`Diterima` / `Menunggu`) · `dicipta_oleh`
+
+**`kod` ialah rujukan sebenar.** `terima(kod)` memadan bayaran dengan projek
+melalui medan teks ini, bukan `projek_id`. Sebab itu `kod` diikat sebagai FK dan
+medan `mp-kod` dikunci (`readOnly`) semasa mengedit projek sedia ada — kalau kod
+boleh berubah bebas, semua bayaran projek itu jadi yatim dan projek nampak macam
+belum dibayar langsung.
 
 ### `log_aktiviti`
 `id` · `pengguna` · `tindakan` · `butiran` · `created_at` — **insert & select sahaja**,
@@ -182,7 +189,17 @@ satu siri, satu warna, corak *hatch* untuk "tiada data". Tiada pustaka carta.
 - Semua laluan **relatif** (`./sw.js`, `./manifest.json`) — GitHub Pages
   menghidangkan dari sub-laluan `/nama-repo/`.
 - `sw.js` **mesti** langkau hos `*.supabase.co` (jangan cache panggilan API).
-- `data.json` guna *network-first*; aset lain *cache-first*.
+- `data.json` **dan `config.js`** guna *network-first*; aset lain *cache-first*.
+  `config.js` mesti network-first kerana kunci Supabase diisi selepas deploy —
+  kalau di-precache, pengguna sedia ada terperangkap dalam mod demo.
+- Lencana status projek dapat **dua** kelas: `t-${jenisStatus(s)}` (umum) diikuti
+  `t-${slug(s)}` (tepat). Yang umum menjamin status bebas seperti `Ongoing` atau
+  `WIP` tetap berwarna; yang tepat diisytihar kemudian dalam CSS supaya ia menang
+  bila padan (contoh `Tertunda` kekal merah). Status **bayaran** kekal `slug()`
+  sahaja.
+- Import (`keSupabase()`) memadam **semua** bayaran bagi kod yang terlibat sebelum
+  memasukkan yang baharu — termasuk yang di-key-in manual. Kotak `confirm()` mesti
+  menyebut bilangan rekod yang akan hilang.
 - Sandaran offline hanya untuk permintaan `navigate` — jika tidak, permintaan
   skrip dapat HTML dan meletup dengan `SyntaxError: Unexpected token '<'`.
 - RLS: hanya peranan `authenticated`. Kunci `anon` selamat dalam repo public.
