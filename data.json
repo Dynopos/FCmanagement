@@ -5,20 +5,20 @@
     "tahun": "2026",
     "dikemaskini": "2026-08-18",
     "oleh": "Top Management",
-    "sumber": "PROJECT LISTING 2026 FCI.xls — helaian PROJECT FLOW 2026"
+    "sumber": "Data contoh rekaan untuk mod demo — bukan rekod pelanggan sebenar"
   },
   "projek": [
     {
       "kod": "FC-01",
-      "nama": "ABD KADIR",
-      "klien": "ABD KADIR",
-      "lokasi": "DESA MENTARI PJ",
-      "telefon": "012 3735490",
+      "nama": "EN AHMAD FAUZI",
+      "klien": "EN AHMAD FAUZI",
+      "lokasi": "TAMAN CONTOH 1, PETALING JAYA",
+      "telefon": "012-555 0101",
       "pic": "",
       "status": "Siap",
       "nilai": 4800,
       "mula": "2026-07-12",
-      "inv": "INV09004/2026",
+      "inv": "INV-DEMO-001",
       "nota": "",
       "aliran": {
         "deposit": true,
@@ -33,15 +33,15 @@
     },
     {
       "kod": "FC-02",
-      "nama": "EN ZAKARIA",
-      "klien": "EN ZAKARIA",
-      "lokasi": "DESA SENTOSA, BANGI",
-      "telefon": "019 2240711",
+      "nama": "PUAN SITI AMINAH",
+      "klien": "PUAN SITI AMINAH",
+      "lokasi": "TAMAN CONTOH 2, BANGI",
+      "telefon": "019-555 0102",
       "pic": "",
       "status": "Siap",
       "nilai": 19000,
       "mula": "2026-06-30",
-      "inv": "INV09004/26",
+      "inv": "INV-DEMO-002",
       "nota": "",
       "aliran": {
         "deposit": true,
@@ -56,15 +56,15 @@
     },
     {
       "kod": "FC-03",
-      "nama": "PUAN RINIE CHE OMAR",
-      "klien": "PUAN RINIE CHE OMAR",
-      "lokasi": "SURIA RESIDENCE, BUKIT JELUTONG",
-      "telefon": "012-474 6770",
+      "nama": "PUAN NURUL HUDA",
+      "klien": "PUAN NURUL HUDA",
+      "lokasi": "RESIDENSI CONTOH, SHAH ALAM",
+      "telefon": "012-555 0103",
       "pic": "",
       "status": "Siap",
       "nilai": 7500,
       "mula": "2026-07-31",
-      "inv": "FC-I260731",
+      "inv": "INV-DEMO-003",
       "nota": "",
       "aliran": {
         "deposit": true,
@@ -79,15 +79,15 @@
     },
     {
       "kod": "FC-04",
-      "nama": "MR ARVIND",
-      "klien": "MR ARVIND",
-      "lokasi": "THE VUE@MONTEREZ",
-      "telefon": "016 2157126",
+      "nama": "MR DANIEL TAN",
+      "klien": "MR DANIEL TAN",
+      "lokasi": "KONDO CONTOH, CHERAS",
+      "telefon": "016-555 0104",
       "pic": "",
       "status": "Dalam Progres",
       "nilai": 24200,
       "mula": "2026-07-20",
-      "inv": "INV09004/2026",
+      "inv": "INV-DEMO-004",
       "nota": "",
       "aliran": {
         "deposit": true,
@@ -102,15 +102,15 @@
     },
     {
       "kod": "FC-05",
-      "nama": "MR AIMAN HAFIZ",
-      "klien": "MR AIMAN HAFIZ",
-      "lokasi": "DIAN II, SHAH ALAM",
+      "nama": "EN HAFIZ RAHMAN",
+      "klien": "EN HAFIZ RAHMAN",
+      "lokasi": "TAMAN CONTOH 3, KLANG",
       "telefon": "",
       "pic": "",
       "status": "Dalam Progres",
       "nilai": 20000,
       "mula": "2026-08-02",
-      "inv": "FC-I260802",
+      "inv": "INV-DEMO-005",
       "nota": "ADDITIONAL RM1800 +",
       "aliran": {
         "deposit": true,
@@ -125,9 +125,9 @@
     },
     {
       "kod": "FC-06",
-      "nama": "REAZA",
-      "klien": "REAZA",
-      "lokasi": "DESA BUDIMAN,",
+      "nama": "EN ZULKIFLI",
+      "klien": "EN ZULKIFLI",
+      "lokasi": "TAMAN CONTOH 4, KAJANG",
       "telefon": "",
       "pic": "",
       "status": "Dalam Progres",
@@ -148,8 +148,8 @@
     },
     {
       "kod": "FC-07",
-      "nama": "EN REZUANE",
-      "klien": "EN REZUANE",
+      "nama": "EN RIDZUAN",
+      "klien": "EN RIDZUAN",
       "lokasi": "",
       "telefon": "",
       "pic": "",
@@ -171,8 +171,8 @@
     },
     {
       "kod": "FC-08",
-      "nama": "MEI TENG",
-      "klien": "MEI TENG",
+      "nama": "MS LIM WEI",
+      "klien": "MS LIM WEI",
       "lokasi": "",
       "telefon": "",
       "pic": "",
@@ -194,8 +194,8 @@
     },
     {
       "kod": "FC-09",
-      "nama": "EN MUHAMMAD AMRAN",
-      "klien": "EN MUHAMMAD AMRAN",
+      "nama": "EN KHAIRUL ANUAR",
+      "klien": "EN KHAIRUL ANUAR",
       "lokasi": "",
       "telefon": "",
       "pic": "",
@@ -217,8 +217,8 @@
     },
     {
       "kod": "FC-10",
-      "nama": "xxx",
-      "klien": "xxx",
+      "nama": "PROJEK CONTOH",
+      "klien": "PROJEK CONTOH",
       "lokasi": "",
       "telefon": "",
       "pic": "",
@@ -247,7 +247,7 @@
       "amaun": 1500,
       "tarikh": "2026-07-12",
       "kaedah": "—",
-      "ruj": "INV09004/2026",
+      "ruj": "INV-DEMO-001",
       "status": "Diterima"
     },
     {
@@ -257,7 +257,7 @@
       "amaun": 3300,
       "tarikh": "2026-07-23",
       "kaedah": "—",
-      "ruj": "INV09004/2026",
+      "ruj": "INV-DEMO-001",
       "status": "Diterima"
     },
     {
@@ -267,7 +267,7 @@
       "amaun": 1000,
       "tarikh": "2026-06-30",
       "kaedah": "—",
-      "ruj": "INV09004/26",
+      "ruj": "INV-DEMO-002",
       "status": "Diterima"
     },
     {
@@ -277,7 +277,7 @@
       "amaun": 8500,
       "tarikh": "2026-06-30",
       "kaedah": "—",
-      "ruj": "INV09004/26",
+      "ruj": "INV-DEMO-002",
       "status": "Diterima"
     },
     {
@@ -287,7 +287,7 @@
       "amaun": 8550,
       "tarikh": "2026-07-18",
       "kaedah": "—",
-      "ruj": "INV09004/26",
+      "ruj": "INV-DEMO-002",
       "status": "Diterima"
     },
     {
@@ -297,7 +297,7 @@
       "amaun": 950,
       "tarikh": "2026-07-18",
       "kaedah": "—",
-      "ruj": "INV09004/26",
+      "ruj": "INV-DEMO-002",
       "status": "Diterima"
     },
     {
@@ -307,7 +307,7 @@
       "amaun": 3750,
       "tarikh": "2026-07-01",
       "kaedah": "—",
-      "ruj": "FC-I260731",
+      "ruj": "INV-DEMO-003",
       "status": "Diterima"
     },
     {
@@ -317,7 +317,7 @@
       "amaun": 3750,
       "tarikh": "2026-07-01",
       "kaedah": "—",
-      "ruj": "FC-I260731",
+      "ruj": "INV-DEMO-003",
       "status": "Diterima"
     },
     {
@@ -327,7 +327,7 @@
       "amaun": 2420,
       "tarikh": "2026-07-20",
       "kaedah": "—",
-      "ruj": "INV09004/2026",
+      "ruj": "INV-DEMO-004",
       "status": "Diterima"
     },
     {
@@ -337,7 +337,7 @@
       "amaun": 9680,
       "tarikh": "2026-07-20",
       "kaedah": "—",
-      "ruj": "INV09004/2026",
+      "ruj": "INV-DEMO-004",
       "status": "Diterima"
     },
     {
@@ -347,7 +347,7 @@
       "amaun": 2000,
       "tarikh": "2026-10-08",
       "kaedah": "—",
-      "ruj": "FC-I260802",
+      "ruj": "INV-DEMO-005",
       "status": "Diterima"
     },
     {
@@ -357,7 +357,7 @@
       "amaun": 1000,
       "tarikh": "2026-10-08",
       "kaedah": "—",
-      "ruj": "FC-I260802",
+      "ruj": "INV-DEMO-005",
       "status": "Diterima"
     },
     {
